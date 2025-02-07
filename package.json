@@ -1,4 +1,22 @@
 {
+  "name": "bts-app-backend",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "tsc": "tsc",
+    "start": "ts-node-dev --respawn ./app/index.ts",
+    "dev": "nodemon ./app/index.ts",
+    "lint": "eslint './app**/*.{ts}'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SteveTetchoup26/BTS-app-backend.git"
+  },
+  "author": "Steve TETCHOUP <stevetcthoup20@gmail.com>",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
