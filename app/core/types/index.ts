@@ -23,3 +23,10 @@ export enum StatusCourse {
     PUBLISHED = 'Published',
     ARCHIVED = 'Archived'
 }
+
+export enum StatusForum {
+    OPEN = 'Open',
+    CLOSED = 'Closed',
+    REJECTED = 'Rejected',
+    ARCHIVED = 'Archived'	
+}

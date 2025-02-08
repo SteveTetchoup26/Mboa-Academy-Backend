@@ -1,4 +1,4 @@
-import { AutoIncrement, BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, HasOne, Model, PrimaryKey, Table } from "sequelize-typescript";
 import User from "../authentication/user.model";
 import CourseStatus from "./courseStatus.model";
 import LanguageCourse from "./language.model";
@@ -6,6 +6,7 @@ import Feature from "./feature.model";
 import Objective from "./objective.model";
 import Category from "./category.model";
 import CourseCategory from "./courseCategory.model";
+import Forum from "../forum/forum.model";
 
 @Table({
     timestamps: true,
@@ -58,4 +59,7 @@ export default class Course extends Model {
 
     @BelongsToMany(() => Category, () => CourseCategory)
     categories: Category[];
+
+    @HasOne(() => Forum)
+    forum: Forum;
 }

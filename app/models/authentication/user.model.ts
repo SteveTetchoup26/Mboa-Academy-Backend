@@ -1,7 +1,8 @@
-import { AutoIncrement, BelongsTo, BelongsToMany, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
 import Role from "./role.model";
 import UserStatus from "./userStatus.model";
 import UserRole from "./userRole.model";
+import Message from "../forum/message.model";
 
 @Table({
     timestamps: true,
@@ -31,4 +32,7 @@ export default class User extends Model {
 
     @BelongsToMany(() => Role, () => UserRole)
     roles: Role[];
+
+    @HasMany(() => Message)
+    messages: Message[];
 }
