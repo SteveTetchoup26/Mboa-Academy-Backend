@@ -23,9 +23,6 @@ export default class Certificate extends Model {
     @Column
     file_name: string;
 
-    @Column(DataType.INTEGER)
-    progress: number;
-
     @BelongsTo(() => Course)
     course: Course;
 

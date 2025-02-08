@@ -37,3 +37,18 @@ export enum StatusEnrollment {
     COMPLETED = 'Completed',
     ARCHIVED = 'Archived'
 }
+
+export enum StatusPayment {
+    PENDING = 'Pending',
+    COMPLETED = 'Completed',
+    REJECTED = 'Rejected',
+    FAILED = 'Failed'
+}
+
+export enum MethodPayment {
+    OM = 'Orange Money',
+    MOMO = 'Mtn Mobile Money',
+    VISA = 'Visa',
+    MASTERCARD = 'Master Card',
+    PAYPAL = 'PayPal'
+}

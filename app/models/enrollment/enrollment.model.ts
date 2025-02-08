@@ -1,7 +1,8 @@
-import { AutoIncrement, BelongsTo, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, BelongsTo, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
 import Course from "../course/course.model";
 import User from "../authentication/user.model";
 import EnrollmentStatus from "./enrollmentStatus.model";
+import Payment from "../payment/payment.model";
 
 @Table({
     timestamps: true,
@@ -39,4 +40,7 @@ export default class Enrollment extends Model {
 
     @BelongsTo(() => User)
     student: User;
+
+    @HasMany(() => Payment)
+    payments: Payment[];
 }

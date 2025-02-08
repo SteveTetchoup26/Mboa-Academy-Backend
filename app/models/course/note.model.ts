@@ -23,9 +23,6 @@ export default class Note extends Model {
     @Column(DataType.INTEGER)
     stars: number;
 
-    @Column(DataType.INTEGER)
-    progress: number;
-
     @BelongsTo(() => Course)
     course: Course;
 
