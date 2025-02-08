@@ -9,6 +9,7 @@ import CourseCategory from "./courseCategory.model";
 import Forum from "../forum/forum.model";
 import Note from "./note.model";
 import Certificate from "./certificate.model";
+import Enrollment from "../enrollment/enrollment.model";
 
 @Table({
     timestamps: true,
@@ -70,4 +71,7 @@ export default class Course extends Model {
 
     @HasOne(() => Certificate)
     certificate: Certificate;
+
+    @HasMany(() => Enrollment)
+    enrollments: Enrollment[];
 }

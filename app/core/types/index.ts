@@ -30,3 +30,10 @@ export enum StatusForum {
     REJECTED = 'Rejected',
     ARCHIVED = 'Archived'	
 }
+
+export enum StatusEnrollment {
+    INIT = 'Init',
+    ONGOING = 'Ongoing',
+    COMPLETED = 'Completed',
+    ARCHIVED = 'Archived'
+}
