@@ -3,6 +3,8 @@ import Role from "./role.model";
 import UserStatus from "./userStatus.model";
 import UserRole from "./userRole.model";
 import Message from "../forum/message.model";
+import Note from "../course/note.model";
+import Certificate from "../course/certificate.model";
 
 @Table({
     timestamps: true,
@@ -35,4 +37,10 @@ export default class User extends Model {
 
     @HasMany(() => Message)
     messages: Message[];
+
+    @HasMany(() => Note)
+    notes: Note[];
+
+    @HasMany(() => Certificate)
+    certificates: Certificate[];
 }

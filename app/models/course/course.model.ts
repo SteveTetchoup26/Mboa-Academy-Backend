@@ -7,6 +7,8 @@ import Objective from "./objective.model";
 import Category from "./category.model";
 import CourseCategory from "./courseCategory.model";
 import Forum from "../forum/forum.model";
+import Note from "./note.model";
+import Certificate from "./certificate.model";
 
 @Table({
     timestamps: true,
@@ -62,4 +64,10 @@ export default class Course extends Model {
 
     @HasOne(() => Forum)
     forum: Forum;
+
+    @HasMany(() => Note)
+    notes: Note[];
+
+    @HasOne(() => Certificate)
+    certificate: Certificate;
 }
