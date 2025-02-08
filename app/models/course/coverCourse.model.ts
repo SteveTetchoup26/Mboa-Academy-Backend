@@ -1,19 +1,19 @@
 import { AutoIncrement, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
-import DocumentType from './documentType.model';
+import Course from "./course.model";
 
 @Table({
     timestamps: true,
-    tableName: 'user_document'
+    tableName: 'cover_course',
 })
-export default class UserDocument extends Model {
+export default class CoverCourse extends Model {
     @PrimaryKey
     @AutoIncrement
     @Column(DataType.INTEGER)
     id: number;
 
-    @ForeignKey(() => DocumentType)
+    @ForeignKey(() => Course)
     @Column(DataType.INTEGER)
-    document_type_id: number;
+    course_id: number;
 
     @Column
     file_name: string;

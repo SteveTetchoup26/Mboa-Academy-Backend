@@ -1,4 +1,6 @@
-import { AfterSync, AutoIncrement, Column, DataType, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AfterSync, AutoIncrement, Column, DataType, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { TypeDocument } from "../../core/types";
+import UserDocument from "./userDocument.model";
 
 @Table({
     timestamps: true,
@@ -13,9 +15,12 @@ export default class DocumentType extends Model {
     @Column
     title: string;
 
+    @HasMany(() => UserDocument)
+    documents: UserDocument[];
+
     @AfterSync
     static async insertStaticRoles() {
-        const roles = ["Photos", "Diplôme", "Autres"];
+        const roles = [TypeDocument.PHOTOS, TypeDocument.DIPLOME, TypeDocument.AUTRES];
         for (const title of roles) {
             await DocumentType.findOrCreate({ where: { title } });
         }

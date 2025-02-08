@@ -1,6 +1,7 @@
-import { AutoIncrement, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, BelongsTo, BelongsToMany, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
 import Role from "./role.model";
 import UserStatus from "./userStatus.model";
+import UserRole from "./userRole.model";
 
 @Table({
     timestamps: true,
@@ -11,10 +12,6 @@ export default class User extends Model {
     @AutoIncrement
     @Column(DataType.INTEGER)
     id: number;
-
-    @ForeignKey(() => Role)
-    @Column(DataType.INTEGER)
-    role_id: number;
 
     @ForeignKey(() => UserStatus)
     @Column(DataType.INTEGER)
@@ -28,4 +25,10 @@ export default class User extends Model {
 
     @Column
     password: string;
+
+    @BelongsTo(() => UserStatus)
+    status: UserStatus;
+
+    @BelongsToMany(() => Role, () => UserRole)
+    roles: Role[];
 }

@@ -1,4 +1,6 @@
-import { AfterSync, AutoIncrement, Column, DataType, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AfterSync, AutoIncrement, Column, DataType, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { StatusUser } from "../../core/types";
+import User from "./user.model";
 
 @Table({
     timestamps: true,
@@ -13,10 +15,13 @@ export default class UserStatus extends Model {
     @Column
     title: string;
 
+    @HasMany(() => User)
+    users: User[];
+
     @AfterSync
-    static async insertStaticRoles() {
-        const roles = ["Pending", "Active", "Rejected", "Archived"];
-        for (const title of roles) {
+    static async insertStaticStatuses() {
+        const statuses = [StatusUser.PENDING, StatusUser.ACTIVE, StatusUser.REJECTED, StatusUser.ARCHIVED];
+        for (const title of statuses) {
             await UserStatus.findOrCreate({ where: { title } });
         }
     }

@@ -1,4 +1,7 @@
-import { AfterSync, AutoIncrement, Column, DataType, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AfterSync, AutoIncrement, BelongsToMany, Column, DataType, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { RoleType } from "../../core/types";
+import User from "./user.model";
+import UserRole from "./userRole.model";
 
 @Table({
     timestamps: true,
@@ -13,9 +16,12 @@ export default class Role extends Model {
     @Column
     title: string;
 
+    @BelongsToMany(() => User, () => UserRole)
+    users: User[];
+
     @AfterSync
     static async insertStaticRoles() {
-        const roles = ["Admin", "Student", "Instructor"];
+        const roles = [RoleType.ADMIN, RoleType.STUDENT, RoleType.INSTRUCTOR];
         for (const title of roles) {
         await Role.findOrCreate({ where: { title } });
         }
