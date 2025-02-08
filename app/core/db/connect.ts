@@ -1,6 +1,5 @@
 import * as config from '../config'
 import * as path from 'path';
-import * as bcrypt from "bcryptjs";
 
 import { Sequelize } from 'sequelize-typescript'
 
@@ -13,7 +12,7 @@ const sequelize = new Sequelize({
     password: config.DB_PASSWORD,
     port: config.DB_PORT,
     logging: false,
-    models: [path.join(__dirname, '../../models/*.model.ts')],
+    models: [path.join(__dirname, '../../models/*/*.model.ts')],
     modelMatch: (filename: string, member) => {
 		return filename.substring(0, filename.indexOf('.model')) === member.toLowerCase()
 	}
