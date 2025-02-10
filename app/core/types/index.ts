@@ -52,3 +52,7 @@ export enum MethodPayment {
     MASTERCARD = 'Master Card',
     PAYPAL = 'PayPal'
 }
+
+export interface CustomRequest extends Request {
+    adminId: number;
+}

@@ -23,6 +23,9 @@ export default class Message extends Model {
     @Column(DataType.INTEGER)
     user_id: number;
 
+    @Column(DataType.INTEGER)
+    parent_id: number;
+
     @BelongsTo(() => Forum)
     forum: Forum;
 
