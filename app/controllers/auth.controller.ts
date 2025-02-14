@@ -6,11 +6,13 @@ import * as config from '../core/config';
 
 import { decodeJwtToken } from "../core/middleware/auth";
 import { TokenInfo } from '../core/types';
+import { i18next } from '../core/i18n'
 
 
 import User from "../models/authentication/user.model";
 import UserStatus from "../models/authentication/userStatus.model";
 import UserRole from "../models/authentication/userRole.model";
+
 
 
 const {
@@ -90,13 +92,13 @@ class authController {
             const user: User | null = await User.findOne({ where: { email }})
 
             if(!user) {
-                return res.status(400).json({ message: 'login failed' });
+                return res.status(400).json({ message: i18next.t('login.failed') });
             }
 
             const isMatch: boolean = bcrypt.compareSync(password, user.password);
 
             if(!isMatch) {
-                return res.status(400).json({ message: 'login failed' });
+                return res.status(400).json({ message: i18next.t('login.failed') });
             }
 
             const { id }: any  = user;
@@ -107,7 +109,7 @@ class authController {
         } catch (error) {
             console.log(error);
 
-            return res.status(500).json({ message: 'Internal Server Error'})
+            return res.status(500).json({ message: i18next.t('internal.error')});
         }
     }
 }

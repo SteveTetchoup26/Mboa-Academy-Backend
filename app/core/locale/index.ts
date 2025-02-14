@@ -30,7 +30,7 @@ class Locale {
    */
   public static async setLocale(locale: string): Promise<void> {
     if (!Locale.availables.includes(locale)) {
-      throw new Error(`Locale "${locale}" is not supported.`);
+      throw new Error(`Locale "${locale}" is not available.`);
     }
     Locale.locale = locale;
     if (!Locale.locales[locale]) {
