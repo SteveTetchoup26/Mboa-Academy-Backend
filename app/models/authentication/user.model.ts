@@ -16,20 +16,20 @@ export default class User extends Model {
     @PrimaryKey
     @AutoIncrement
     @Column(DataType.INTEGER)
-    id: number;
+    id!: number;
 
     @ForeignKey(() => UserStatus)
     @Column(DataType.INTEGER)
-    status_id: number;
+    status_id!: number;
 
     @Column
-    name: string;
+    name!: string;
 
     @Column
-    email: string;
+    email!: string;
 
     @Column
-    password: string;
+    password!: string;
 
     @BelongsTo(() => UserStatus)
     status: UserStatus;

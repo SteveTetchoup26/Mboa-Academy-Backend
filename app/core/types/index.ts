@@ -56,3 +56,7 @@ export enum MethodPayment {
 export interface CustomRequest extends Request {
     adminId: number;
 }
+
+export type TokenInfo = {
+	id: string;
+};
