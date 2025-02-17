@@ -6,7 +6,8 @@ import * as config from '../core/config';
 
 import { decodeJwtToken } from "../core/middleware/auth";
 import { TokenInfo } from '../core/types';
-import { i18next } from '../core/i18n'
+import { i18next } from '../core/i18n';
+import mailer from '../core/mailer';
 
 
 import User from "../models/authentication/user.model";
@@ -16,7 +17,7 @@ import UserRole from "../models/authentication/userRole.model";
 
 
 const {
-	JWT_SECRET, JWT_EXPIRE
+	JWT_SECRET, JWT_EXPIRE, JWT_EMAIL_EXPIRE, JWT_EMAIL_SECRET, WEB_APP_URL, RESET_PASSWORD_PATH
 }: any = config;
 
 /**
@@ -68,7 +69,7 @@ class authController {
         } catch (error) {
             
             console.log(error);
-            return res.status(500).json({ error: "Internal Server Error"})
+            return res.status(500).json({ error: i18next.t('internal.error')})
         }
     }
 
@@ -112,6 +113,105 @@ class authController {
             return res.status(500).json({ message: i18next.t('internal.error')});
         }
     }
+
+
+    /**
+   * forgotPassword()
+   *
+   * Sent an email with a token to reset user password
+   *
+   * @param {Request} req: Request object
+   * @param {Response} res: Response object
+   * @param {NextFunction} next: NextFunction object
+   *
+   * @return Object
+   */
+    public static async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<any> {
+        const { email }: any = req.body;
+      
+        try {
+          const user: any = await User.findOne({ where: { email }});
+      
+          if (!user) {
+            return res.status(404).json({ message: i18next.t('no.user.test.ts') });
+          }
+      
+          const { id, name, email: userEmail } = user;
+          const tokenInfo: TokenInfo = { id };
+      
+          let token: string;
+          try {
+            token = jwt.sign(tokenInfo, JWT_EMAIL_SECRET, { expiresIn: JWT_EMAIL_EXPIRE });
+          } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: i18next.t('internal.error')});
+          }
+      
+          const data: any = {
+            to: userEmail,
+            subject: 'mail.subject.forgot.password',
+            template: 'forgot-password-email',
+            context: {
+              url: `${WEB_APP_URL}/${RESET_PASSWORD_PATH}?token=${token}`,
+              name,
+            },
+          };
+      
+          await mailer.sendMail(data);
+      
+          return res.json({ message: i18next.t('email.success') });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({ message: i18next.t('internal.error')});
+        }
+    }
+
+    /**
+   * resetPassword()
+   *
+   * Reset the password of an user
+   *
+   * @param {Request} req: Request object
+   * @param {Response} res: Response object
+   * @param {NextFunction} next: NextFunction object
+   *
+   * @return Object
+   */
+	public static async resetPassword(req: Request, res: Response, next: NextFunction): Promise<any> {
+		const resetToken: string = req.body.reset_token;
+		let decoded: any;
+
+		try {
+			decoded = await decodeJwtToken(resetToken, JWT_EMAIL_SECRET);
+		} catch (err) {
+			console.log(err);
+
+			return res.status(400).json({ message: i18next.t('bad.token') });
+		}
+
+		try {
+			const user: any = await User.findOne({ where: { id: decoded.id }});
+
+			if (!user) {
+				return res.status(404).json({ message: i18next.t('no.user.test.ts') });
+			}
+
+			const password: string = await bcrypt.hashSync(req.body.password, 10);
+
+			const { id }: any = user;
+
+			await User.update({ password }, {
+				where: { id }
+			});
+
+			return res.json({ message: i18next.t('password.reset') });
+		} catch (err) {
+			console.log(err);
+
+			return res.status(500).json({ message: i18next.t('internal.error') });
+		}
+	}
+      
 }
 
 export { authController }
