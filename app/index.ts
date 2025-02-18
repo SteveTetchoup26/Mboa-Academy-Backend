@@ -5,7 +5,7 @@ import { Locale } from './core/locale';
 
 import { dbConnection } from "./core/db/connect";
 import { initI18n } from "./core/i18n";
-// import { Routes } from "./routes";
+import { Routes } from "./routes";
 
 
 
@@ -17,7 +17,7 @@ const app: Application = express();
 const server: http.Server = http.createServer(app);
 
 
-// Routes.init(app);
+Routes.init(app);
 
 
 server.listen(port, async() => {

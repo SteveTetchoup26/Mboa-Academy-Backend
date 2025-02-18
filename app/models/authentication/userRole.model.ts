@@ -13,10 +13,10 @@ export default class UserRole extends Model {
   @PrimaryKey
   @ForeignKey(() => User)
   @Column(DataType.INTEGER)
-  userId: number;
+  user_id: number;
 
   @PrimaryKey
   @ForeignKey(() => Role)
   @Column(DataType.INTEGER)
-  roleId: number;
+  role_id: number;
 }

@@ -35,6 +35,7 @@ class Mailer {
       };
 
       const result = await smtpTransport.sendMail(updatedData);
+      
       console.log(`Email envoyé avec succès : ${result.messageId}`);
     } catch (error) {
       console.error(`Erreur lors de l'envoi de l'email : ${error}`);

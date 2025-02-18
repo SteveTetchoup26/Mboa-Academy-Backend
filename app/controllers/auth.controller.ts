@@ -13,6 +13,7 @@ import mailer from '../core/mailer';
 import User from "../models/authentication/user.model";
 import UserStatus from "../models/authentication/userStatus.model";
 import UserRole from "../models/authentication/userRole.model";
+import Role from "../models/authentication/role.model";
 
 
 
@@ -26,7 +27,7 @@ const {
  * @class
  */
 
-class authController {
+class AuthController {
 
     /**
      *  register()
@@ -40,11 +41,13 @@ class authController {
      * @return Object
      */
     public static async register(req: Request, res: Response, next: NextFunction): Promise<any> {
+
+      const { name, email }: any = req.body;
+
         try {
-            const { name, email }: any = req.body;
 
             const status: UserStatus | null = await UserStatus.findOne({ where: { title: 'Pending'}});
-            const role: UserRole | null = await UserRole.findOne({ where: { title: 'Student' }});
+            const role: Role | null = await Role.findOne({ where: { title: 'Student' }});
 
             if(!status || !role) {
                 return res.status(400).json({ error: "Invalid status or role" });
@@ -58,7 +61,7 @@ class authController {
                 password,
                 status_id: status.id,
             });
-
+            
             await UserRole.create({
                 user_id: user.id,
                 role_id: role.id
@@ -133,10 +136,10 @@ class authController {
           const user: any = await User.findOne({ where: { email }});
       
           if (!user) {
-            return res.status(404).json({ message: i18next.t('no.user.test.ts') });
+            return res.status(404).json({ message: i18next.t('no.user') });
           }
       
-          const { id, name, email: userEmail } = user;
+          const { id } = user;
           const tokenInfo: TokenInfo = { id };
       
           let token: string;
@@ -148,12 +151,12 @@ class authController {
           }
       
           const data: any = {
-            to: userEmail,
-            subject: 'mail.subject.forgot.password',
+            to: user.email,
+            subject: i18next.t('mail.subject.forgot.password'),
             template: 'forgot-password-email',
             context: {
               url: `${WEB_APP_URL}/${RESET_PASSWORD_PATH}?token=${token}`,
-              name,
+              name: user.name,
             },
           };
       
@@ -182,7 +185,7 @@ class authController {
 		let decoded: any;
 
 		try {
-			decoded = await decodeJwtToken(resetToken, JWT_EMAIL_SECRET);
+			decoded = await decodeJwtToken(resetToken, JWT_SECRET);
 		} catch (err) {
 			console.log(err);
 
@@ -193,7 +196,7 @@ class authController {
 			const user: any = await User.findOne({ where: { id: decoded.id }});
 
 			if (!user) {
-				return res.status(404).json({ message: i18next.t('no.user.test.ts') });
+				return res.status(404).json({ message: i18next.t('no.user') });
 			}
 
 			const password: string = await bcrypt.hashSync(req.body.password, 10);
@@ -214,4 +217,4 @@ class authController {
       
 }
 
-export { authController }
+export { AuthController }

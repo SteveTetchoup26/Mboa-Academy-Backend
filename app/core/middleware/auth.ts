@@ -59,6 +59,8 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
     const allowedRoutes: string[] = [
         'auth/login',
         'auth/register',
+        'auth/password/forgot',
+        'auth/password/reset',
         'admin/users',
         'admin/users/:id',
     ];
