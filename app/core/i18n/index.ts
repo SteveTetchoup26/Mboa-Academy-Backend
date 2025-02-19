@@ -11,6 +11,7 @@ async function initI18n() {
     },
     ns: ['message', 'validation'], // Namespaces disponibles
     defaultNS: 'message',
+    fallbackNS: ['validation'],
     interpolation: {
       escapeValue: false, // Permet d'inclure du HTML si nécessaire
     },

@@ -67,7 +67,7 @@ class AuthController {
                 role_id: role.id
             });
 
-            return res.status(201).json({ message: "User registered successfully", user });
+            return res.status(201).json({ message: i18next.t('register.success') });
 
         } catch (error) {
             

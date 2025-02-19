@@ -85,7 +85,7 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
             }
 
             //if everything good, save to request for use in other routes
-            req.adminId = decoded.id;
+            req.userId = decoded.id;
             return next();
 
         } catch (error) {
