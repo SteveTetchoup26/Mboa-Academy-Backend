@@ -21,15 +21,15 @@ class CategoryRoute {
 	routes(): void {
 		const prefix: string = `${API_BASE}categories`;
 
-        this.router.post(`${prefix}`, CategoryController.create);
+        this.router.post(`${prefix}/create`, CategoryController.create);
 
 		this.router.get(`${prefix}`, CategoryController.all);
 
 		this.router.get(`${prefix}/:id`, CategoryController.one);
 
-		this.router.put(`${prefix}`, CategoryController.update);
+		this.router.put(`${prefix}/update/:id`, CategoryController.update);
 
-		this.router.delete(`${prefix}/:id`, CategoryController.destroy);
+		this.router.delete(`${prefix}/delete/:id`, CategoryController.destroy);
 	}
 }
 

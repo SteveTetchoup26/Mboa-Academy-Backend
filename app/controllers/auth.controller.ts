@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import * as config from '../core/config';
@@ -40,7 +40,7 @@ class AuthController {
      * 
      * @return Object
      */
-    public static async register(req: Request, res: Response, next: NextFunction): Promise<any> {
+    public static async register(req: Request, res: Response): Promise<any> {
 
       const { name, email }: any = req.body;
 
@@ -129,7 +129,7 @@ class AuthController {
    *
    * @return Object
    */
-    public static async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<any> {
+    public static async forgotPassword(req: Request, res: Response): Promise<any> {
         const { email }: any = req.body;
       
         try {
@@ -180,7 +180,7 @@ class AuthController {
    *
    * @return Object
    */
-	public static async resetPassword(req: Request, res: Response, next: NextFunction): Promise<any> {
+	public static async resetPassword(req: Request, res: Response): Promise<any> {
 		const resetToken: string = req.body.reset_token;
 		let decoded: any;
 

@@ -162,7 +162,7 @@ class UserController {
 			}
 			updatedUser = await User.findOne({ where: { id: uid }});
 
-			return res.json({ updatedUser });
+			return res.json({ message: i18next.t('model.saved', { model: 'User'}), updatedUser });
 		} catch (err) {
 			console.log(err);
 

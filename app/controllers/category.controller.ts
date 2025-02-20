@@ -4,9 +4,8 @@ import { Request, Response } from 'express';
 import { CustomRequest } from '../core/types';
 import { i18next } from '../core/i18n';
 import Category from '../models/course/category.model';
-import CourseStatus from '../models/course/courseStatus.model';
-import User from '../models/authentication/user.model';
-import UserStatus from '../models/authentication/userStatus.model';
+import Role from '../models/authentication/role.model';
+import UserRole from '../models/authentication/userRole.model';
 
 
 /**
@@ -30,22 +29,27 @@ class CategoryController {
         const { title, description } = req.body;
 
         try {
-            const user: User | null = await User.findOne({ where: { id: req.userId }});
-            if (!user) {
-                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'User' }) });
+            const userRole: UserRole | null = await UserRole.findOne({ where: { user_id: req.userId }});
+            
+            if (!userRole) {
+                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'UserRole' }) });
             }
 
-		    const status: UserStatus | null = await UserStatus.findOne({ where: { title: 'Admin' } });
-            if (!status) {
-                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Course' }) });
+		    const role: Role | null = await Role.findOne({ where: { title: 'Admin' }});
+            
+            if (!role) {
+                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Role' }) });
             }
 
-            if(user.status_id === status.id){
+            if(userRole.role_id === role.id){
                 await Category.create({
                     title,
                     description,
-                    admin_id: user.id,
+                    admin_id: userRole.user_id,
                 })
+                return res.status(201).json({ message: i18next.t('category.created')});
+            } else {
+                return res.status(403).json({ message: i18next.t('unauthorized') });
             }
         } catch (err) {
             console.log(err);
@@ -121,33 +125,7 @@ class CategoryController {
    * @return Object
    */
 	public static async destroy(req: CustomRequest | any, res: Response): Promise<any> {
-		const id: number = req.params.id;
-		try {
-            const category: Category | null = await Category.findOne({ where: { id } });
-            if (!category) {
-                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Category' }) });
-            }
-
-            const status: UserStatus | null = await UserStatus.findOne({ where: { title: 'Admin' } });
-            if (!status) {
-                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Course' }) });
-            }
-
-            if (req.userId === category.admin_id) {
-                const status: CourseStatus | null = await CourseStatus.findOne({ where: { title: 'Archived'}});
-                await Category.update({
-                    status_id: status?.id
-                },{
-                    where: { id }
-                });
-            }
-
-            return res.status(200).json({ message: i18next.t('model.deleted', { model: 'Course' }) });
-		} catch (err) {
-			console.log(err);
-
-			return res.status(500).json({ error: i18next.t('internal.error') });
-		}
+		
 	}
 
      /**
@@ -178,7 +156,7 @@ class CategoryController {
         }
         updateCategory = await Category.findOne({ where: { id: category.id } });
 
-        return res.status(200).json({ updateCategory });
+        return res.status(200).json({ message: i18next.t('model.saved', { model: 'Category'}), updateCategory });
     } catch (err) {
         console.log(err);
 

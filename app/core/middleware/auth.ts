@@ -56,13 +56,12 @@ export const decodeJwtToken: decodedJWTFunction = (token: string, jwtSecret: str
 
 const authMiddleware: any = async (req: CustomRequest | any, res: Response, next: NextFunction): Promise<any> => {
     const token = req.headers.authorization?.split(' ')[1];
+    
     const allowedRoutes: string[] = [
         'auth/login',
         'auth/register',
         'auth/password/forgot',
         'auth/password/reset',
-        'admin/users',
-        'admin/users/:id',
     ];
     let routeName: string = '';
 
@@ -84,7 +83,6 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
                 return res.status(401).json({ message: 'unauthorized' });
             }
 
-            //if everything good, save to request for use in other routes
             req.userId = decoded.id;
             return next();
 
@@ -93,7 +91,7 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         }
     }
 
-    return res.status(401).json({ message: 'unauthorized' });
+    return res.status(401).json({ message: 'unauthorizedddd' });
 }
 
 export { authMiddleware }

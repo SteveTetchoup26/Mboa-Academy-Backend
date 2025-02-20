@@ -1,5 +1,5 @@
 {
-    "server.start": "Application started at port: {port}",
+    "server.start": "Application started at port: {{port}}",
     "db.synced": "DB Synchronized !",
     "country.loaded": "Countries initialized successfully!",
     "unauthorized": "Access Unauthorized due to invalid authorization key.",
@@ -9,9 +9,9 @@
     "db.connected": "Connected to database !",
     "internal.error": "Internal error occurred!",
     "email.exist": "The email address already exist !",
-    "model.deleted": "{model} deleted successfully !",
-    "model.not.found": "The {model} not found in the database!",
-    "model.exist": "The {model} already exist!",
+    "model.deleted": "{{model} deleted successfully !",
+    "model.not.found": "The {{model}} not found in the database!",
+    "model.exist": "The {{model}} already exist!",
     "login.failed": "Email or password is incorrect",
     "invalid.password": "Your current password is not correct!",
     "no.token": "No token provided!",
@@ -30,8 +30,9 @@
     "unexpected.error": "Unexpected error: {error}",
     "large.file": "File size too large !",
     "one.settings.error": "'You have only one settings ! You can't delete it!",
-    "model.saved": "The {model} saved successfully!",
+    "model.saved": "The {{model}} saved successfully!",
     "register.success": "User registered successfully!",
+    "category.success": "Category created successfully",
     "mail.subject.confirm.account": "Confirm account",
     "mail.subject.forgot.password": "You have forgotten your password"
   }
