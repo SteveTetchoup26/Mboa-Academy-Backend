@@ -7,6 +7,7 @@ import Note from "../course/note.model";
 import Certificate from "../course/certificate.model";
 import Enrollment from "../enrollment/enrollment.model";
 import Payment from "../payment/payment.model";
+import Category from "../course/category.model";
 
 @Table({
     timestamps: true,
@@ -51,4 +52,7 @@ export default class User extends Model {
 
     @HasMany(() => Payment)
     payments: Payment[];
+
+    @HasMany(() => Category)
+    categories: Category[];
 }

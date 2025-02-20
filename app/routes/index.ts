@@ -4,10 +4,12 @@ import * as path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 
-import * as config from '../core/config';
+// import * as config from '../core/config';
 
 import { AuthRoute } from './auth.route';
 import { authMiddleware } from '../core/middleware/auth';
+import { UserRoute } from './user.route';
+import { CategoryRoute } from './category.route';
 
 /**
  * Global router configuration of the application
@@ -37,6 +39,14 @@ class Routes {
 
 		// auth
 		app.use('/', new AuthRoute().router);
+
+		//users
+		app.use('/', new UserRoute().router);
+
+		//courses
+
+		//categories
+		app.use('/', new CategoryRoute().router);
 
 
 		// Static content

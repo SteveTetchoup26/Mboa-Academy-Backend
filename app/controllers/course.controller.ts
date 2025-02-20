@@ -20,7 +20,7 @@ import CourseCategory from '../models/course/courseCategory.model';
 
 
 /**
- * Controller for user details
+ * Controller for course details
  *
  * @class
  */
@@ -196,7 +196,7 @@ class CourseController {
                 ]
             });
 
-			return res.json({ courses });
+			return res.status(200).json({ courses });
 		} catch (err) {
 			console.log(err);
 
@@ -251,7 +251,7 @@ class CourseController {
 				return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Course' }) });
 			}
 
-			return res.json({ course });
+			return res.status(200).json({ course });
 		} catch (err) {
 			console.log(err);
 
@@ -287,7 +287,7 @@ class CourseController {
                 });
 			}
 
-			return res.json({ message: i18next.t('model.deleted', { model: 'Course' }) });
+			return res.status(200).json({ message: i18next.t('model.deleted', { model: 'Course' }) });
 		} catch (err) {
 			console.log(err);
 
@@ -316,7 +316,7 @@ class CourseController {
         }
 
         if (req.userId === course.instructor_id) {
-            
+
         }
 
     } catch (err) {
