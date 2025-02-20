@@ -1,13 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as bcrypt from 'bcryptjs';
-import * as path from 'path';
-import * as fs from 'fs';
+import { Request, Response } from 'express';
 
-import { Request, Response, NextFunction } from 'express';
-
-import { CustomRequest, UploadedFile } from '../core/types';
+import { CustomRequest } from '../core/types';
 import { i18next } from '../core/i18n';
 import User from '../models/authentication/user.model';
+import UserStatus from '../models/authentication/userStatus.model';
 
 
 /**
@@ -27,7 +24,7 @@ class UserController {
    *
    * @return Object
    */
-    public static async me(req: CustomRequest|any, res: Response, next: NextFunction): Promise<any> {
+    public static async me(req: CustomRequest|any, res: Response): Promise<any> {
 		try {
 			const user: User | null = await User.findOne({ 
                 where: { id: req.userId },
@@ -57,7 +54,7 @@ class UserController {
    *
    * @return Object
    */
-    public static async all(req: Request, res: Response, next: NextFunction): Promise<any> {
+    public static async all(req: Request, res: Response): Promise<any> {
 		try {
 			const users: Array<User> = await User.findAll({
                 attributes: { exclude: ['password'] }
@@ -82,7 +79,7 @@ class UserController {
    *
    * @return Object
    */
-	public static async one(req: Request, res: Response, next: NextFunction): Promise<any> {
+	public static async one(req: Request, res: Response): Promise<any> {
 		try {
 			const user: User | null = await User.findOne({ where: { id: req.params.id }});
 
@@ -109,15 +106,18 @@ class UserController {
    *
    * @return Object
    */
-	public static async destroy(req: CustomRequest|any, res: Response, next: NextFunction): Promise<any> {
+	public static async destroy(req: CustomRequest|any, res: Response): Promise<any> {
 		const id: number = req.params.id;
 
 		try {
 			if (req.userId === id) {
-				await User.destroy({ where: { id: id } });
+                const status: UserStatus | null = await UserStatus.findOne({ where: { title: 'Archived'}});
+				await User.update({
+                    status_id: status?.id
+                },{
+                    where: { id }
+                });
 			}
-
-			// TODO check if authenticated user has privilege to delete
 
 			return res.json({ message: i18next.t('model.deleted', { model: 'User' }) });
 		} catch (err) {
@@ -138,7 +138,7 @@ class UserController {
    *
    * @return Object
    */
-	public static async update(req: CustomRequest|any, res: Response, next: NextFunction): Promise<any> {
+	public static async update(req: CustomRequest|any, res: Response): Promise<any> {
 		const uid: string = req.body.uid;
 		const authUserId: string = req.userId;
 		const data: any = req.body;

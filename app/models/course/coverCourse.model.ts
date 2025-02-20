@@ -1,4 +1,4 @@
-import { AutoIncrement, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, BelongsTo, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
 import Course from "./course.model";
 
 @Table({
@@ -20,4 +20,7 @@ export default class CoverCourse extends Model {
 
     @Column
     format: string;
+
+    @BelongsTo(() => Course)
+    course: Course;
 }

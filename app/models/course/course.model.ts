@@ -10,6 +10,8 @@ import Forum from "../forum/forum.model";
 import Note from "./note.model";
 import Certificate from "./certificate.model";
 import Enrollment from "../enrollment/enrollment.model";
+import Module from "./module.model";
+import CoverCourse from "./coverCourse.model";
 
 @Table({
     timestamps: true,
@@ -54,24 +56,30 @@ export default class Course extends Model {
     @BelongsTo(() => CourseStatus)
     status: CourseStatus;
 
+    @BelongsToMany(() => Category, () => CourseCategory)
+    categories: Category[];
+
     @HasMany(() => Feature)
     features: Feature[];
 
     @HasMany(() => Objective)
     objectives: Objective[];
 
-    @BelongsToMany(() => Category, () => CourseCategory)
-    categories: Category[];
-
-    @HasOne(() => Forum)
-    forum: Forum;
+    @HasMany(() => Enrollment)
+    enrollments: Enrollment[];
 
     @HasMany(() => Note)
     notes: Note[];
 
+    @HasMany(() => Module)
+    modules: Module[];
+
+    @HasMany(() => CoverCourse)
+    cover_courses: CoverCourse[];
+
+    @HasOne(() => Forum)
+    forum: Forum;
+
     @HasOne(() => Certificate)
     certificate: Certificate;
-
-    @HasMany(() => Enrollment)
-    enrollments: Enrollment[];
 }

@@ -1,4 +1,4 @@
-import { AutoIncrement, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table, BelongsTo } from "sequelize-typescript";
 import Course from "./course.model";
 import Lesson from "./lesson.model";
 
@@ -24,4 +24,7 @@ export default class Module extends Model {
 
     @HasMany(() => Lesson)
     lessons: Lesson[];
+
+    @BelongsTo(() => Course)
+    course: Course;
 }
