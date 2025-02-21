@@ -32,6 +32,7 @@
     "one.settings.error": "Vous avez un seul paramètre, impossible de le supprimer !",
     "model.saved": "Le {{model}} a été sauvegardé avec succès!",
     "register.success": "Utilisateur enregistré avec succès !",
+    "course.submited": "Cours envoyé avec succès !",
     "category.success": "Catégorie enregistrée avec succès",
     "mail.subject.confirm.account": "Confirmation du compte",
     "mail.subject.forgot.password": "Vous avez oublié votre mot de passe",

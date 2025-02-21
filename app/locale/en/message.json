@@ -9,7 +9,7 @@
     "db.connected": "Connected to database !",
     "internal.error": "Internal error occurred!",
     "email.exist": "The email address already exist !",
-    "model.deleted": "{{model} deleted successfully !",
+    "model.deleted": "{{model}} deleted successfully !",
     "model.not.found": "The {{model}} not found in the database!",
     "model.exist": "The {{model}} already exist!",
     "login.failed": "Email or password is incorrect",
@@ -32,6 +32,7 @@
     "one.settings.error": "'You have only one settings ! You can't delete it!",
     "model.saved": "The {{model}} saved successfully!",
     "register.success": "User registered successfully!",
+    "course.submited": "Course successfully submited",
     "category.success": "Category created successfully",
     "mail.subject.confirm.account": "Confirm account",
     "mail.subject.forgot.password": "You have forgotten your password"

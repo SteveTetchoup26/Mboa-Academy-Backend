@@ -47,7 +47,7 @@ class CategoryController {
                     description,
                     admin_id: userRole.user_id,
                 })
-                return res.status(201).json({ message: i18next.t('category.created')});
+                return res.status(201).json({ message: i18next.t('category.success')});
             } else {
                 return res.status(403).json({ message: i18next.t('unauthorized') });
             }

@@ -10,6 +10,7 @@ import { AuthRoute } from './auth.route';
 import { authMiddleware } from '../core/middleware/auth';
 import { UserRoute } from './user.route';
 import { CategoryRoute } from './category.route';
+import { CourseRoute } from './course.route';
 
 /**
  * Global router configuration of the application
@@ -44,7 +45,7 @@ class Routes {
 		app.use('/', new UserRoute().router);
 
 		//courses
-
+		app.use('/', new CourseRoute().router);
 		//categories
 		app.use('/', new CategoryRoute().router);
 

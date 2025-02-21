@@ -62,6 +62,9 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         'auth/register',
         'auth/password/forgot',
         'auth/password/reset',
+        'users',
+        'categories',
+        'courses',
     ];
     let routeName: string = '';
 
@@ -71,7 +74,9 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         return res.status(401).json({ message: 'unauthorized' });
     }
 
-    if(allowedRoutes.includes(routeName)){
+    const isAllowed = allowedRoutes.includes(routeName) || allowedRoutes.some(route => new RegExp(`^${route}/\\d+$`).test(routeName));
+
+    if (isAllowed) {
         return next();
     }
 
@@ -91,7 +96,7 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         }
     }
 
-    return res.status(401).json({ message: 'unauthorizedddd' });
+    return res.status(401).json({ message: 'unauthorized' });
 }
 
 export { authMiddleware }
