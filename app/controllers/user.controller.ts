@@ -28,7 +28,7 @@ class UserController {
 		try {
 			const user: User | null = await User.findOne({ 
                 where: { id: req.userId },
-                attributes: { exclude: ['password']}
+                attributes: { exclude: ['password', 'createdAt', 'updatedAt']}
             });
 
 			if (!user) {
@@ -57,7 +57,7 @@ class UserController {
     public static async all(req: Request, res: Response): Promise<any> {
 		try {
 			const users: Array<User> = await User.findAll({
-                attributes: { exclude: ['password'] }
+                attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
             });
 
 			return res.json({ users });
@@ -81,7 +81,10 @@ class UserController {
    */
 	public static async one(req: Request, res: Response): Promise<any> {
 		try {
-			const user: User | null = await User.findOne({ where: { id: req.params.id }});
+			const user: User | null = await User.findOne({ 
+				where: { id: req.params.id },
+				attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
+			});
 
 			if (!user) {
 				return res.status(404).json({ message: i18next.t('model.not.found', { model: 'User' }) });

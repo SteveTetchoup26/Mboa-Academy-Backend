@@ -1,6 +1,7 @@
-import { AutoIncrement, BelongsTo, Column, DataType, ForeignKey, HasOne, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, BelongsTo, Column, DataType, ForeignKey, HasMany, HasOne, Model, PrimaryKey, Table } from "sequelize-typescript";
 import Module from "./module.model";
 import VideoLesson from "./videoLesson.model";
+import EnrollmentEvolution from "../enrollment/enrollmentEvolution.model";
 
 @Table({
     timestamps: true,
@@ -27,4 +28,7 @@ export default class Lesson extends Model {
 
     @HasOne(() => VideoLesson)
     video: VideoLesson;
+
+    @HasMany(() => EnrollmentEvolution)
+    enrollmentEvolutions: EnrollmentEvolution[];
 }

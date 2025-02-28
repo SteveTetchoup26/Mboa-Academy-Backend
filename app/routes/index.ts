@@ -11,6 +11,7 @@ import { authMiddleware } from '../core/middleware/auth';
 import { UserRoute } from './user.route';
 import { CategoryRoute } from './category.route';
 import { CourseRoute } from './course.route';
+import { EnrollmentRoute } from './enrollment.route';
 
 /**
  * Global router configuration of the application
@@ -46,8 +47,12 @@ class Routes {
 
 		//courses
 		app.use('/', new CourseRoute().router);
+
 		//categories
 		app.use('/', new CategoryRoute().router);
+
+		//enrollments
+		app.use('/', new EnrollmentRoute().router);
 
 
 		// Static content

@@ -33,7 +33,8 @@
     "model.saved": "Le {{model}} a été sauvegardé avec succès!",
     "register.success": "Utilisateur enregistré avec succès !",
     "course.submited": "Cours envoyé avec succès !",
-    "category.success": "Catégorie enregistrée avec succès",
+    "category.success": "Catégorie enregistrée avec succès !",
+    "enrollment.success": "Inscription initialisée avec succès !",
     "mail.subject.confirm.account": "Confirmation du compte",
     "mail.subject.forgot.password": "Vous avez oublié votre mot de passe",
     "current.password.invalid": "The current password is incorrect !"

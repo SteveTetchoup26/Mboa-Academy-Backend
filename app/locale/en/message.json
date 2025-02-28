@@ -32,8 +32,9 @@
     "one.settings.error": "'You have only one settings ! You can't delete it!",
     "model.saved": "The {{model}} saved successfully!",
     "register.success": "User registered successfully!",
-    "course.submited": "Course successfully submited",
-    "category.success": "Category created successfully",
+    "course.submited": "Course successfully submited!",
+    "category.success": "Category created successfully!",
+    "enrollment.success": "Enrollment successfully initialized !",
     "mail.subject.confirm.account": "Confirm account",
     "mail.subject.forgot.password": "You have forgotten your password"
   }
