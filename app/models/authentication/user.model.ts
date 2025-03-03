@@ -32,6 +32,9 @@ export default class User extends Model {
     @Column
     password!: string;
 
+    @Column
+    email_token: string;
+
     @BelongsTo(() => UserStatus)
     status: UserStatus;
 

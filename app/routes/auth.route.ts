@@ -30,6 +30,8 @@ class AuthRoute {
 
 		this.router.post(`${prefix}/login`, AuthController.login);
 
+		this.router.post(`${prefix}/account/confirm`, AuthController.confirmAccount);
+
 		this.router.post(`${prefix}/password/forgot`, AuthController.forgotPassword);
 
 		this.router.post(`${prefix}/password/reset`, AuthController.resetPassword);

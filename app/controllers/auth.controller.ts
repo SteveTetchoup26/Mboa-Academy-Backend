@@ -18,7 +18,7 @@ import Role from "../models/authentication/role.model";
 
 
 const {
-	JWT_SECRET, JWT_EXPIRE, JWT_EMAIL_EXPIRE, JWT_EMAIL_SECRET, WEB_APP_URL, RESET_PASSWORD_PATH
+	JWT_SECRET, JWT_EXPIRE, JWT_EMAIL_EXPIRE, JWT_EMAIL_SECRET, WEB_APP_URL, RESET_PASSWORD_PATH, CONFIRM_ACCOUNT_PATH
 }: any = config;
 
 /**
@@ -54,20 +54,36 @@ class AuthController {
             }
 
             const password: string = bcrypt.hashSync(req.body.password, 10);
+            const emailToken: string = bcrypt.hashSync(email, 8);
 
             const user = await User.create({
                 name,
                 email,
                 password,
                 status_id: status.id,
+                email_token: emailToken
             });
+
             
             await UserRole.create({
                 user_id: user.id,
                 role_id: role.id
             });
 
-            return res.status(201).json({ message: i18next.t('register.success') });
+            const data: any = {
+              to: user.email,
+              subject: i18next.t('mail.subject.confirm.account'),
+              template: 'confirm-account-email',
+              context: {
+                url: `${WEB_APP_URL}/${CONFIRM_ACCOUNT_PATH}?token=${emailToken}`,
+                name: user.name,
+                email: user.email
+              },
+            };
+        
+            await mailer.sendMail(data);
+
+            return res.status(201).json({success: true, message: i18next.t('register.success') });
 
         } catch (error) {
             
@@ -116,6 +132,43 @@ class AuthController {
             return res.status(500).json({ message: i18next.t('internal.error')});
         }
     }
+
+    /**
+   * confirmAccount()
+   *
+   * Confirm user account with the token sent to his
+   * email address after registered
+   *
+   * @param {Request} req: Request object
+   * @param {Response} res: Response object
+   * @param {NextFunction} next: NextFunction object
+   *
+   * @return Object
+   */
+	public static async confirmAccount(req: Request, res: Response): Promise<any> {
+		try {
+			const token: string = req.body.token;
+
+			const user: any = await User.findOne({ where: { email_token: token }});
+
+			if (!user) {
+				return res.status(400).json({ message: i18next.t('bad.token') });
+			}
+
+			const { id }: any = user;
+      const status: UserStatus | null = await UserStatus.findOne({ where: { title: 'Active' }});
+
+			await User.update({ status_id: status?.id, email_token: null }, {
+				where: { id}
+			});
+
+			return res.json({ message: i18next.t('account.confirmed') });
+		} catch (err) {
+			console.error(err);
+
+			return res.status(500).json({ message: i18next.t('internal.error')});
+		}
+	}
 
 
     /**
