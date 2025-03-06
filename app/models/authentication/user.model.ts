@@ -1,4 +1,4 @@
-import { AutoIncrement, BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { AutoIncrement, BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, HasOne, Model, PrimaryKey, Table } from "sequelize-typescript";
 import Role from "./role.model";
 import UserStatus from "./userStatus.model";
 import UserRole from "./userRole.model";
@@ -8,6 +8,7 @@ import Certificate from "../course/certificate.model";
 import Enrollment from "../enrollment/enrollment.model";
 import Payment from "../payment/payment.model";
 import Category from "../course/category.model";
+import Expertise from "./expertise.model";
 
 @Table({
     timestamps: true,
@@ -33,6 +34,9 @@ export default class User extends Model {
     password!: string;
 
     @Column
+    phone_number!: string;
+
+    @Column
     email_token: string;
 
     @BelongsTo(() => UserStatus)
@@ -40,6 +44,9 @@ export default class User extends Model {
 
     @BelongsToMany(() => Role, () => UserRole)
     roles: Role[];
+
+    @HasOne(() => Expertise)
+    expertise: Expertise;
 
     @HasMany(() => Message)
     messages: Message[];

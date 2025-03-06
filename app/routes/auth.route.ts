@@ -24,7 +24,7 @@ class AuthRoute {
 	}
 
 	routes(): void {
-		const prefix: string = `${API_BASE}auth`;
+		const prefix: string = `${API_BASE}/auth`;
 
 		this.router.post(`${prefix}/register`, AuthController.register);
 

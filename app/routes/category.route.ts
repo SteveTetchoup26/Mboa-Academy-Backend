@@ -19,7 +19,7 @@ class CategoryRoute {
 	}
 
 	routes(): void {
-		const prefix: string = `${API_BASE}categories`;
+		const prefix: string = `${API_BASE}/categories`;
 
         this.router.post(`${prefix}/create`, CategoryController.create);
 

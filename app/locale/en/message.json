@@ -36,6 +36,7 @@
     "category.success": "Category created successfully!",
     "enrollment.success": "Enrollment successfully initialized !",
     "mail.subject.confirm.account": "Confirm account",
-    "mail.subject.forgot.password": "You have forgotten your password"
+    "mail.subject.forgot.password": "You have forgotten your password",
+    "mail.confirm.register": "A confirmation email has been sent to your email address.",
   }
   

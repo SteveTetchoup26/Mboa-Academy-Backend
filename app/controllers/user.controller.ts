@@ -5,6 +5,9 @@ import { CustomRequest } from '../core/types';
 import { i18next } from '../core/i18n';
 import User from '../models/authentication/user.model';
 import UserStatus from '../models/authentication/userStatus.model';
+import Role from '../models/authentication/role.model';
+import UserRole from '../models/authentication/userRole.model';
+import Expertise from '../models/authentication/expertise.model';
 
 
 /**
@@ -26,9 +29,16 @@ class UserController {
    */
     public static async me(req: CustomRequest|any, res: Response): Promise<any> {
 		try {
+			// if (!req.userId) {
+			// 	return res.status(401).json({ message: "User ID not found in request" });
+			// }
 			const user: User | null = await User.findOne({ 
                 where: { id: req.userId },
-                attributes: { exclude: ['password', 'createdAt', 'updatedAt']}
+                attributes: { exclude: ['password', 'createdAt', 'updatedAt']},
+				include: {
+					model: Role,
+					through: { attributes: [] }
+				}
             });
 
 			if (!user) {
@@ -90,7 +100,7 @@ class UserController {
 				return res.status(404).json({ message: i18next.t('model.not.found', { model: 'User' }) });
 			}
 
-			return res.json({ user });
+			return res.status(200).json({ user });
 		} catch (err) {
 			console.log(err);
 
@@ -163,9 +173,82 @@ class UserController {
 					where: { id: uid}
 				});
 			}
-			updatedUser = await User.findOne({ where: { id: uid }});
+			updatedUser = await User.findOne({ 
+				where: { id: uid },
+				include: {
+					model: Role,
+					through: { attributes: [] }
+				}
+			});
 
 			return res.json({ message: i18next.t('model.saved', { model: 'User'}), updatedUser });
+		} catch (err) {
+			console.log(err);
+
+			return res.status(500).json({ message: i18next.t('internal.error') });
+		}
+	}
+
+	/**
+   * becomeInstructor()
+   *
+   * Update the user to become an instructor
+   *
+   * @param {Request} req: Request object
+   * @param {Response} res: Response object
+   *
+   * @return Object
+   */
+	public static async becomeInstructor(req: CustomRequest|any, res: Response): Promise<any> {
+		const { email, phone_number, domain, job_title } = req.body;
+
+		try {
+			const user = await User.findOne({ 
+				where: { 
+					id: req.userId ,
+					email
+				}
+			});
+
+			if (!user) {
+				return res.status(404).json({ message: i18next.t('unauthorized') });
+			}
+
+			await user.update({
+				phone_number,
+			});
+
+			const instructorRole: Role | null = await Role.findOne({ where: { title: 'Instructor' }});
+
+			if (!instructorRole) {
+				return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Role' }) });
+			}
+
+			await UserRole.create({
+				user_id: user.id,
+				role_id: instructorRole.id
+			});
+
+			await Expertise.create({
+				user_id: user.id,
+                domain,
+                job_title
+			});
+
+			const updatedUser: User | null  = await User.findOne({ 
+				where: { 
+					id: req.userId ,
+					email
+				}, 
+				attributes: { exclude: ['password', 'email_token', 'createdAt', 'updatedAt'] },
+				include: {
+					model: Role,
+                    through: { attributes: [] }
+				}
+			});
+
+			return res.json({ message: i18next.t('model.saved', { model: 'User'}), updatedUser });
+			
 		} catch (err) {
 			console.log(err);
 

@@ -37,6 +37,7 @@
     "enrollment.success": "Inscription initialisée avec succès !",
     "mail.subject.confirm.account": "Confirmation du compte",
     "mail.subject.forgot.password": "Vous avez oublié votre mot de passe",
-    "current.password.invalid": "The current password is incorrect !"
+    "current.password.invalid": "The current password is incorrect !",
+    "mail.confirm.register": "Un email de confirmation a été envoyé à votre adresse email."
   }
   

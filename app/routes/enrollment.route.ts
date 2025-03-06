@@ -19,7 +19,7 @@ class EnrollmentRoute {
 	}
 
 	routes(): void {
-		const prefix: string = `${API_BASE}enrollments`;
+		const prefix: string = `${API_BASE}/enrollments`;
 
         this.router.post(`${prefix}/create`, EnrollmentController.create);
 

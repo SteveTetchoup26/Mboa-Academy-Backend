@@ -19,7 +19,7 @@ class CourseRoute {
 	}
 
 	routes(): void {
-		const prefix: string = `${API_BASE}courses`;
+		const prefix: string = `${API_BASE}/courses`;
 
         this.router.post(`${prefix}/create`, CourseController.create);
 

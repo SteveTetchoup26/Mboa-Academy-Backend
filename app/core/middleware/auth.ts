@@ -56,15 +56,15 @@ export const decodeJwtToken: decodedJWTFunction = (token: string, jwtSecret: str
 
 const authMiddleware: any = async (req: CustomRequest | any, res: Response, next: NextFunction): Promise<any> => {
     const token = req.headers.authorization?.split(' ')[1];
-    
+   
     const allowedRoutes: string[] = [
-        'auth/login',
-        'auth/register',
-        'auth/password/forgot',
-        'auth/password/reset',
-        'users',
-        'categories',
-        'courses',
+        '/auth/login',
+        '/auth/register',
+        '/auth/account/confirm',
+        '/auth/password/forgot',
+        '/auth/password/reset',
+        '/categories',
+        '/courses',
     ];
     let routeName: string = '';
 

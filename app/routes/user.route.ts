@@ -19,7 +19,7 @@ class UserRoute {
 	}
 
 	routes(): void {
-		const prefix: string = `${API_BASE}users`;
+		const prefix: string = `${API_BASE}/users`;
 
 		this.router.get(`${prefix}/me`, UserController.me);
 
@@ -27,9 +27,11 @@ class UserRoute {
 
 		this.router.get(`${prefix}/:id`, UserController.one);
 
-		this.router.put(`${prefix}`, UserController.update);
+		this.router.put(`${prefix}/profile/update`, UserController.update);
 
 		this.router.delete(`${prefix}/:id`, UserController.destroy);
+
+		this.router.post(`${prefix}/become-instructor`, UserController.becomeInstructor);
 	}
 }
 
