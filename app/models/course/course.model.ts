@@ -12,6 +12,7 @@ import Certificate from "./certificate.model";
 import Enrollment from "../enrollment/enrollment.model";
 import Module from "./module.model";
 import CoverCourse from "./coverCourse.model";
+import Payment from "../payment/payment.model";
 
 @Table({
     timestamps: true,
@@ -76,6 +77,9 @@ export default class Course extends Model {
 
     @HasMany(() => CoverCourse)
     cover_courses: CoverCourse[];
+
+    @HasMany(() => Payment)
+    payments: Payment[];
 
     @HasOne(() => Forum)
     forum: Forum;

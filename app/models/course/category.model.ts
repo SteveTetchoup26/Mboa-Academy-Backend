@@ -13,9 +13,9 @@ export default class Category extends Model {
     @Column(DataType.INTEGER)
     id: number;
 
-    @ForeignKey(() => User)
-    @Column(DataType.INTEGER)
-    admin_id: number;
+    // @ForeignKey(() => User)
+    // @Column(DataType.INTEGER)
+    // admin_id: number;
 
     @Column
     title: string;
@@ -26,6 +26,6 @@ export default class Category extends Model {
     @BelongsToMany(() => Course, () => CourseCategory)
     courses: Course[];
 
-    @BelongsTo(() => User)
-    admin: User;
+    // @BelongsTo(() => User)
+    // admin: User;
 }

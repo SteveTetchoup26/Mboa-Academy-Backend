@@ -9,9 +9,10 @@ import helmet from 'helmet';
 import { AuthRoute } from './auth.route';
 import { authMiddleware } from '../core/middleware/auth';
 import { UserRoute } from './user.route';
-import { CategoryRoute } from './category.route';
+// import { CategoryRoute } from './category.route';
 import { CourseRoute } from './course.route';
 import { EnrollmentRoute } from './enrollment.route';
+import { PaymentRoute } from './payment.route';
 
 /**
  * Global router configuration of the application
@@ -48,15 +49,18 @@ class Routes {
 		//courses
 		app.use('/', new CourseRoute().router);
 
+		//payments
+		app.use('/', new PaymentRoute().router);
+
 		//categories
-		app.use('/', new CategoryRoute().router);
+		// app.use('/', new CategoryRoute().router);
 
 		//enrollments
 		app.use('/', new EnrollmentRoute().router);
 
 
 		// Static content
-		app.use(express.static(path.join(__dirname, '../public')));
+		app.use(express.static(path.join(__dirname, '../../public')));
 	}
 }
 

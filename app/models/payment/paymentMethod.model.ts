@@ -15,6 +15,12 @@ export default class PaymentMethod extends Model {
     @Column
     title: string;
 
+    @Column
+    description: string;
+
+    @Column
+    logo: string;
+
     @HasMany(() => Payment)
     payments: Payment[];
 

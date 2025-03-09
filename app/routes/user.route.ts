@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { API_BASE } from '../core/config';
 
 import { UserController } from '../controllers/user.controller';
+import { uploadFiles } from '../utils/upload-handler';
 
 
 /**
@@ -27,7 +28,7 @@ class UserRoute {
 
 		this.router.get(`${prefix}/:id`, UserController.one);
 
-		this.router.put(`${prefix}/profile/update`, UserController.update);
+		this.router.put(`${prefix}/profile/update`, uploadFiles.single('avatar'), UserController.update);
 
 		this.router.delete(`${prefix}/:id`, UserController.destroy);
 

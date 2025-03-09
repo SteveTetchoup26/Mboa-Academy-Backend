@@ -40,7 +40,4 @@ export default class Enrollment extends Model {
 
     @BelongsTo(() => User)
     student: User;
-
-    @HasMany(() => Payment)
-    payments: Payment[];
 }

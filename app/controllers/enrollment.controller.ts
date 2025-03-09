@@ -9,6 +9,7 @@ import User from '../models/authentication/user.model';
 import Module from '../models/course/module.model';
 import Lesson from '../models/course/lesson.model';
 import EnrollmentEvolution from '../models/enrollment/enrollmentEvolution.model';
+import Course from '../models/course/course.model';
 
 
 /**
@@ -28,31 +29,31 @@ class EnrollmentController {
    *
    * @return Object
    */
-    public static async create(req: CustomRequest|any, res: Response): Promise<any> {
-		const { course_id } = req.body;
+    // public static async create(req: CustomRequest|any, res: Response): Promise<any> {
+	// 	const { course_id } = req.body;
 
-        try{
-            const status: EnrollmentStatus | null = await EnrollmentStatus.findOne({
-                where: { title: 'Init' }
-            });
-            if(!status){
-                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'EnrollmentStatus' }) });
-            }
+    //     try{
+    //         const status: EnrollmentStatus | null = await EnrollmentStatus.findOne({
+    //             where: { title: 'Init' }
+    //         });
+    //         if(!status){
+    //             return res.status(404).json({ message: i18next.t('model.not.found', { model: 'EnrollmentStatus' }) });
+    //         }
 
-            await Enrollment.create({
-                course_id,
-                user_id: req.userId,
-                status_id: status.id,
-                progress: 0
-            });
+    //         await Enrollment.create({
+    //             course_id,
+    //             user_id: req.userId,
+    //             status_id: status.id,
+    //             progress: 0
+    //         });
 
-            return res.status(201).json({ message: i18next.t('enrollment.success') });
-        } catch (err) {
-            console.log(err);
+    //         return res.status(201).json({ message: i18next.t('enrollment.success') });
+    //     } catch (err) {
+    //         console.log(err);
 
-            return res.status(500).json({ error: i18next.t('internal.error') });
-        }
-	}
+    //         return res.status(500).json({ error: i18next.t('internal.error') });
+    //     }
+	// }
 
     /**
    * all()
@@ -90,11 +91,25 @@ class EnrollmentController {
    *
    * @return Object
    */
-	public static async one(req: Request, res: Response): Promise<any> {
+	public static async one(req: CustomRequest | any, res: Response): Promise<any> {
         try {
             const enrollment: Enrollment | null = await Enrollment.findOne({ 
                 where: { id: req.params.id },
-                attributes: { exclude: ['createdAt', 'updatedAt'] }
+                attributes: { exclude: ['createdAt', 'updatedAt'] },
+                include: [
+                    {
+                        model: User,
+                        attributes: { exclude: ['createdAt', 'updatedAt'] }
+                    },
+                    {
+                        model: EnrollmentStatus,
+                        attributes: { exclude: ['createdAt', 'updatedAt'] }
+                    },
+                    {
+                        model: Course,
+                        attributes: { exclude: ['instructor_id', 'language_id', 'createdAt'] }
+                    }
+                ]
             });
 
             if (!enrollment) {

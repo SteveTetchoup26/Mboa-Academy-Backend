@@ -230,7 +230,7 @@ class UserController {
 			});
 
 			await Expertise.create({
-				user_id: user.id,
+				instructor_id: user.id,
                 domain,
                 job_title
 			});

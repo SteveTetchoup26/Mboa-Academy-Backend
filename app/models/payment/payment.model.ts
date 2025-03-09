@@ -3,6 +3,7 @@ import User from "../authentication/user.model";
 import Enrollment from "../enrollment/enrollment.model";
 import PaymentMethod from "./paymentMethod.model";
 import PaymentStatus from "./paymentStatus.model";
+import Course from "../course/course.model";
 
 @Table({
     timestamps: true,
@@ -18,9 +19,9 @@ export default class Payment extends Model {
     @Column(DataType.INTEGER)
     student_id: number;
 
-    @ForeignKey(() => Enrollment)
+    @ForeignKey(() => Course)
     @Column(DataType.INTEGER)
-    enrollment_id: number;
+    course_id: number;
 
     @ForeignKey(() => PaymentStatus)
     @Column(DataType.INTEGER)
@@ -33,8 +34,8 @@ export default class Payment extends Model {
     @Column
     amount: number;
 
-    @BelongsTo(() => Enrollment)
-    enrollment: Enrollment;
+    @BelongsTo(() => Course)
+    course: Course;
 
     @BelongsTo(() => User)
     student: User;

@@ -16,7 +16,7 @@ export default class Expertise extends Model {
 
     @ForeignKey(() => User)
     @Column(DataType.INTEGER)
-    user_id: number;
+    instructor_id: number;
 
     @Column
     domain: string;
