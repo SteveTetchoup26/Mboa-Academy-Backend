@@ -63,6 +63,6 @@ export default class User extends Model {
     @HasMany(() => Payment)
     payments: Payment[];
 
-    // @HasMany(() => Category)
-    // categories: Category[];
+    @HasMany(() => Category)
+    categories: Category[];
 }
