@@ -47,7 +47,7 @@ const storage: multer.StorageEngine = multer.diskStorage({
 
 export const uploadFiles =  multer({
     storage: storage,
-    limits: { fileSize: 2 * 1024 * 1024 },
+    limits: { fileSize: 15 * 1024 * 1024 },
     fileFilter(req: any, file: any, callback: (error: Error | any , acceptFile: boolean) => void): void {
         const allowedExtensions = ['.jpg', '.png', '.jpeg', '.mp4'];
         const allowedMimeTypes = ['image/', 'video/'];

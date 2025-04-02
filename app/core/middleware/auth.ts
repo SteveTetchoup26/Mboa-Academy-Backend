@@ -65,6 +65,7 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         '/auth/password/reset',
         '/categories',
         '/courses',
+        '/uploads/others'
     ];
     let routeName: string = '';
 

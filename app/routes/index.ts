@@ -36,6 +36,9 @@ class Routes {
 
 		app.set('view engine', 'handlebars');
 
+		// Static content
+		app.use(express.static(path.join(__dirname, '../../public')));
+
 		app.use(authMiddleware);
 
 		app.use('/', router);
@@ -59,8 +62,7 @@ class Routes {
 		app.use('/', new EnrollmentRoute().router);
 
 
-		// Static content
-		app.use(express.static(path.join(__dirname, '../../public')));
+		
 	}
 }
 
