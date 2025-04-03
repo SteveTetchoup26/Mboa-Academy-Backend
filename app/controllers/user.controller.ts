@@ -67,7 +67,16 @@ class UserController {
     public static async all(req: Request, res: Response): Promise<any> {
 		try {
 			const users: Array<User> = await User.findAll({
-                attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
+                attributes: { exclude: ['password', 'createdAt', 'updatedAt'] },
+				include: [
+					{
+						model: Role,
+						through: { attributes: [] }
+					},{
+						model: UserStatus,
+						attributes: ['id', 'title']
+					}
+				]
             });
 
 			return res.json({ users });
