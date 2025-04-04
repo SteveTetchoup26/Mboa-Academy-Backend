@@ -58,8 +58,8 @@ class PaymentController {
                 amount
             }, { transaction });
 
-            // Simuler un paiement avec 80% de chances de succès
-            const status = Math.random() > 0.4 ? "Success" : "Failed";
+            // Simuler un paiement avec 100% de chances de succès
+            const status = Math.random() >= 0 ? "Success" : "Failed";
             const paymentStatus = await PaymentStatus.findOne({ where: { title: status } });
 
 

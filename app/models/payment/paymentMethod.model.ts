@@ -26,7 +26,18 @@ export default class PaymentMethod extends Model {
 
     @AfterSync
     static async insertStaticMethod() {
-        const methods = [MethodPayment.OM, MethodPayment.MOMO, MethodPayment.VISA, MethodPayment.MASTERCARD, MethodPayment.PAYPAL];
+        const methods = [
+            MethodPayment.OM, 
+            MethodPayment.MOMO,
+            MethodPayment.VISA,
+            MethodPayment.MASTERCARD, 
+            MethodPayment.PAYPAL,
+            MethodPayment.MOOV_MONEY,
+            MethodPayment.M_PESA,
+            MethodPayment.WAVE,
+            MethodPayment.ECOCASH,
+            
+        ];
         for (const title of methods) {
             await PaymentMethod.findOrCreate({ where: { title } });
         }
