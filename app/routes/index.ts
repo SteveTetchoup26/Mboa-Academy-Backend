@@ -13,6 +13,7 @@ import { CategoryRoute } from './category.route';
 import { CourseRoute } from './course.route';
 import { EnrollmentRoute } from './enrollment.route';
 import { PaymentRoute } from './payment.route';
+import { AdminRoute } from './admin/auth.route';
 
 /**
  * Global router configuration of the application
@@ -61,7 +62,7 @@ class Routes {
 		//enrollments
 		app.use('/', new EnrollmentRoute().router);
 
-
+		app.use('/', new AdminRoute().router);
 		
 	}
 }

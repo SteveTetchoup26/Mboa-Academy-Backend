@@ -106,53 +106,72 @@ class AuthController {
      */
 
     public static async login(req: Request, res: Response): Promise<any> {
-        const { email, password }: any = req.body;
+      const { email, password }: any = req.body;
 
-        try {
-          
-            const user: User | null = await User.findOne({ 
+      try {
+          const user: User | null = await User.findOne({ 
               where: { email },
               include: {
-                model: Role,
-                through: { attributes: [] }
+                  model: Role,
+                  through: { attributes: [] }
               }
-            });
+          });
 
-            if(!user) {
-                return res.status(400).json({success: false,  message: i18next.t('login.failed') });
-            }
+          if (!user) {
+              return res.status(400).json({
+                  success: false, 
+                  message: i18next.t('login.failed')
+              });
+          }
 
-            const isMatch: boolean = bcrypt.compareSync(password, user.password);
+          const isMatch: boolean = bcrypt.compareSync(password, user.password);
 
-            if(!isMatch) {
-                return res.status(400).json({success: false,  message: i18next.t('login.failed') });
-            }
+          if (!isMatch) {
+              return res.status(400).json({
+                  success: false, 
+                  message: i18next.t('login.failed')
+              });
+          }
 
-            const status: UserStatus | null = await UserStatus.findOne({ where: { title: 'Active' }});
+          const status: UserStatus | null = await UserStatus.findOne({ 
+              where: { title: 'Active' }
+          });
 
-            if(user.status_id !== status?.id) {
-                return res.status(400).json({success: false, message: i18next.t('account.unconfirmed') });
-            }
+          if (user.status_id !== status?.id) {
+              return res.status(400).json({
+                  success: false, 
+                  message: i18next.t('account.unconfirmed')
+              });
+          }
 
-          
-            const { id }: any  = user;
-            const TokenInfo: TokenInfo = { id };
-            const token: string = jwt.sign(TokenInfo, JWT_SECRET, { expiresIn: JWT_EXPIRE});
+          const { id }: any = user;
+          const TokenInfo: TokenInfo = { id };
+          const token: string = jwt.sign(TokenInfo, JWT_SECRET, { 
+              expiresIn: JWT_EXPIRE
+          });
 
-            const data: any =  {
+          const roles = user.roles.map(role => role.title);
+          const data: any = {
               id: user.id,
               name: user.name,
               email: user.email,
-              roles: user.roles.map(role => role.title)
-            }
-            
-            return res.status(200).json({success: true, token, user: data });
-        } catch (error) {
-            console.log(error);
-
-            return res.status(500).json({ message: i18next.t('internal.error')});
-        }
-    }
+              roles: roles,
+              isAdmin: roles.some(role => role === 'Admin')
+          };
+          
+          return res.status(200).json({
+              success: true, 
+              token, 
+              user: data
+          });
+          
+      } catch (error) {
+          console.log(error);
+          return res.status(500).json({ 
+              message: i18next.t('internal.error')
+          });
+      }
+  }
 
     /**
    * confirmAccount()

@@ -7,7 +7,10 @@
     "start": "ts-node-dev --respawn ./app/index.ts",
     "dev": "nodemon ./app/index.ts",
     "lint": "eslint './app**/*.{ts}'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+
+    "db:seed": "ts-node app/scripts/seed.ts",
+    "seed:admin": "ts-node -e \"require('./app/seeders/seed-admin').seedSuperAdmin().then(() => process.exit(0))\""
   },
   "keywords": [],
   "repository": {
