@@ -16,10 +16,11 @@ import Category from '../models/course/category.model';
 import Lesson from '../models/course/lesson.model';
 import VideoLesson from '../models/course/videoLesson.model';
 import CourseCategory from '../models/course/courseCategory.model';
-import { Op } from 'sequelize';
+import { col, fn, Op, Sequelize } from 'sequelize';
 import Expertise from '../models/authentication/expertise.model';
 import Enrollment from '../models/enrollment/enrollment.model';
 import EnrollmentStatus from '../models/enrollment/enrollmentStatus.model';
+import sequelize from 'sequelize';
 
 
 
@@ -51,8 +52,9 @@ class CourseController {
             objectives,
             modules,
             categories,
-            cover_course,
-        } = req.body;
+        } =  JSON.parse(req.body.data);
+
+        // console.log("BODY", JSON.parse(req.body.data))
 
         const transaction = await Course.sequelize?.transaction();
 
@@ -124,7 +126,7 @@ class CourseController {
                             }, { transaction });
     
                             // Associer la vidéo à la leçon
-                            if (req.files && "videos" in req.files && (req.files as any).videos[i]) {
+                            if (req.files && "videos" in req.files ) { //&& (req.files as any).videos[i]
                                 const videoFile = (req.files as any).videos[i];
     
                                 await VideoLesson.create({
@@ -140,14 +142,14 @@ class CourseController {
 
             if(categories && categories.length > 0){
                 for(const category of categories){
-                    const cat = await Category.create({
-                        title: category.title,
-                        description: category.description,
-                    });
-                    // admin_id: userRole.user_id,
-                    // const cat: Category | null = await Category.findOne({
-                    //     where: { title: category }
+                    // const cat = await Category.create({
+                    //     title: category.title,
+                    //     description: category.description,
                     // });
+                    // admin_id: userRole.user_id,
+                    const cat: Category | null = await Category.findOne({
+                        where: { id: category }
+                    });
                     
                     await CourseCategory.create({
                         course_id: course.id,
@@ -157,9 +159,17 @@ class CourseController {
             }
 
             
-            if (cover_course) {
+            // if (cover_course) {
+            //     await CoverCourse.create({
+            //         ...cover_course,
+            //         course_id: course.id,
+            //     }, { transaction });
+            // }
+            if (req.files && "cover_image" in req.files) {
+                const coverImageFile = (req.files as any).cover_image[0];
                 await CoverCourse.create({
-                    ...cover_course,
+                    file_name: coverImageFile.filename,
+                    format: coverImageFile.mimetype,
                     course_id: course.id,
                 }, { transaction });
             }
@@ -194,9 +204,9 @@ class CourseController {
             });
             
 			const courses: Array<Course> = await Course.findAll({
-                attributes: {
-                    exclude: ['instructor_id', 'language_id','createdAt', 'updatedAt']
-                },
+                // attributes: {
+                    
+                // },
                 order: [['createdAt', 'DESC']],
                 include: [
                     {
@@ -265,10 +275,20 @@ class CourseController {
                             exclude: ['createdAt', 'updatedAt']
                         }
                     },
+                    {
+                        model: Enrollment,
+                        as: 'enrollments',
+                        attributes: {
+                            exclude: ['course_id', 'createdAt', 'updatedAt']
+                        }
+                    }
                 ],
                 where: { 
                     status_id: { [Op.ne]: status?.id }
-                }
+                },
+                attributes: {
+                    exclude: ['instructor_id', 'language_id','createdAt', 'updatedAt'],
+                },
             });
 
 			return res.status(200).json({ courses });
@@ -397,7 +417,11 @@ class CourseController {
 				return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Course' }) });
 			}
 
-			return res.status(200).json({ course });
+            const enrolledStudents = await Enrollment.count({
+                where: { course_id: course.id }
+            });
+
+			return res.status(200).json({ course, enrolledStudents });
 		} catch (err) {
 			console.log(err);
 
@@ -606,6 +630,11 @@ class CourseController {
                     },
                     order: [['createdAt', 'DESC']],
                     include: [
+                        {
+                            model: Enrollment,
+                            attributes: [],
+                            required: false 
+                        },
                         {
                             model: Module,
                             include: [

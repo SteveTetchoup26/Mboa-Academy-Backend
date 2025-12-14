@@ -59,12 +59,15 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
    
     const allowedRoutes: string[] = [
         '/auth/login',
+        '/auth/admin/login',
         '/auth/register',
         '/auth/account/confirm',
         '/auth/password/forgot',
         '/auth/password/reset',
         '/categories',
         '/courses',
+        '/users',
+        '/uploads/others'
     ];
     let routeName: string = '';
 

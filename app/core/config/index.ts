@@ -11,7 +11,7 @@ const paths: any = {
 	production: '../../.env.prod',
 };
 
-const configPath: string = path.resolve(__dirname, paths[process.env.NODE_ENV || 'development']);
+const configPath: string = path.resolve(__dirname, paths[process.env.NODE_ENV || 'dev']);
 
 const envConfig: dotenv.DotenvParseOutput = dotenv.parse(fs.readFileSync(configPath));
 
@@ -54,11 +54,15 @@ const UPLOAD_PAYMENT_METHOD_PATH: string = e.UPLOAD_PAYMENT_METHOD_PATH || '';
 const UPLOAD_COVER_COURSE_PATH: string = e.UPLOAD_COVER_COURSE_PATH || '';
 const UPLOAD_LESSON_VIDEO_PATH: string = e.UPLOAD_LESSON_VIDEO_PATH || '';
 const UPLOAD_DEFAULT_PATH: string = e.UPLOAD_DEFAULT_PATH || '';
+const ADMIN_MAIL: string = e.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD: string = e.ADMIN_PASSWORD || '';
+const ADMIN_PHONE: string = e.ADMIN_PHONE || '';
+const ADMIN_NAME: string = e.ADMIN_NAME || '';
 
 export {
 	ENV, BASE_URL, SERVER_PORT, APP_NAME, APP_VERSION, API_BASE, DEFAULT_TIMEZONE, JWT_SECRET, JWT_EXPIRE, DB_HOST, DB_PORT,
     DB_NAME, DB_USER, DB_PASSWORD, DB_AUTH, LOG_FILE_DIR, MAIL_USERNAME, MAIL_PASSWORD, SENDGRID_API_KEY, MAIL_FROM,
 	ADMIN_FIRSTNAME, ADMIN_LASTNAME, WEB_APP_URL, CONFIRM_ACCOUNT_PATH, RESET_PASSWORD_PATH, JWT_EMAIL_SECRET, JWT_EMAIL_EXPIRE,
 	UPLOAD_DOCUMENT_USER_PATH, UPLOAD_DOCUMENT_ADMIN_PATH, UPLOAD_PAYMENT_METHOD_PATH, UPLOAD_COVER_COURSE_PATH, UPLOAD_LESSON_VIDEO_PATH,
-	UPLOAD_DEFAULT_PATH
+	UPLOAD_DEFAULT_PATH, ADMIN_MAIL, ADMIN_PASSWORD, ADMIN_PHONE, ADMIN_NAME
 }

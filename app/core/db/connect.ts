@@ -1,7 +1,7 @@
+import { Sequelize } from 'sequelize-typescript'
 import * as config from '../config'
 import * as path from 'path';
 
-import { Sequelize } from 'sequelize-typescript'
 
 
 const sequelize = new Sequelize({

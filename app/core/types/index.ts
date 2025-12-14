@@ -50,7 +50,11 @@ export enum MethodPayment {
     MOMO = 'Mtn Mobile Money',
     VISA = 'Visa',
     MASTERCARD = 'Master Card',
-    PAYPAL = 'PayPal'
+    PAYPAL = 'PayPal',
+    MOOV_MONEY = 'Moov Money',
+    M_PESA = 'M-Pesa',
+    WAVE = 'Wave',
+    ECOCASH = 'Ecocash',
 }
 
 export interface CustomRequest extends Request {
