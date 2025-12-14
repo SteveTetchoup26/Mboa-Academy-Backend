@@ -70,20 +70,33 @@ class AuthController {
                 role_id: role.id
             });
 
-            const data: any = {
-              to: user.email,
-              subject: i18next.t('mail.subject.confirm.account'),
-              template: 'confirm-account-email',
-              context: {
-                url: `${WEB_APP_URL}/${CONFIRM_ACCOUNT_PATH}?token=${emailToken}`,
-                name: user.name,
-                email: user.email
-              },
-            };
-        
-            await mailer.sendMail(data);
+            try {
+              const data = {
+                to: user.email,
+                subject: 'mail.subject.confirm.account',
+                template: 'confirm-account-email',
+                context: {
+                  url: `${WEB_APP_URL}/${CONFIRM_ACCOUNT_PATH}?token=${emailToken}`,
+                  name: user.name,
+                  email: user.email
+                },
+              };
 
-            return res.status(201).json({success: true, message: i18next.t('mail.confirm.register') });
+              await mailer.sendMail(data);
+
+            } catch (emailError) {
+              console.error("Erreur d'envoi email :", emailError);
+
+              return res.status(500).json({
+                success: false,
+                message: i18next.t('mail.error.sending')
+              });
+            }
+
+            return res.status(201).json({
+              success: true,
+              message: i18next.t('mail.confirm.register')
+            });
 
         } catch (error) {
             

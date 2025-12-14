@@ -38,7 +38,8 @@
     "mail.subject.confirm.account": "Confirm account",
     "mail.subject.forgot.password": "You have forgotten your password",
     "mail.confirm.register": "A confirmation email has been sent to your email address.",
+    "mail.error.sending": "An error has occurred while sending the email.",
     "payment.failed": "An error has occurred during payment processing! Try again",
-    "payment.success": "Payment successfully processed!",
+    "payment.success": "Payment successfully processed!"
   }
   

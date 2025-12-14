@@ -6,7 +6,6 @@ import fs from 'fs/promises';
 import handlebars from 'handlebars';
 import * as config from '../config';
 // import { logger } from '../logger';
-import { Locale } from '../locale';
 import { i18next } from '../../core/i18n'
 
 class Mailer {
@@ -19,8 +18,6 @@ class Mailer {
           },
         })
       );
-
-      // const filePath = path.join(__dirname, `./templates/${Locale.getLocale()}/${data.template}.html`);
       const filePath = path.join(__dirname, `./templates/${i18next.language}/${data.template}.html`);
       const source = await fs.readFile(filePath, 'utf8');
       const template = handlebars.compile(source);
@@ -30,7 +27,6 @@ class Mailer {
         ...data,
         html,
         from: `Node Starter <${config.MAIL_FROM}>`,
-        // subject: Locale.trans(data.subject),
         subject: i18next.t(data.subject),
       };
 
@@ -39,6 +35,7 @@ class Mailer {
       console.log(`Email envoyé avec succès : ${result.messageId}`);
     } catch (error) {
       console.error(`Erreur lors de l'envoi de l'email : ${error}`);
+      throw error;
     }
   }
 }
