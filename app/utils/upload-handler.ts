@@ -2,6 +2,7 @@
 import * as path from 'path';
 import fs from 'fs';
 import multer from 'multer';
+import { Request } from 'express';
 import { UPLOAD_DEFAULT_PATH, UPLOAD_DOCUMENT_USER_PATH, UPLOAD_DOCUMENT_ADMIN_PATH, UPLOAD_PAYMENT_METHOD_PATH, UPLOAD_COVER_COURSE_PATH, UPLOAD_LESSON_VIDEO_PATH } from '../core/config';
 
 
@@ -39,7 +40,7 @@ const storage: multer.StorageEngine = multer.diskStorage({
         cb(null, folder);
       },
 
-    filename(req: Express.Request, file: Express.Multer.File, fn: (error: Error | null, filename: string) => void): void {
+    filename(req: Request, file: Express.Multer.File, fn: (error: Error | null, filename: string) => void): void {
         fn(null, `${new Date().getTime().toString()}-${file.originalname}${path.extname(file.originalname)}`);
     }
 })
