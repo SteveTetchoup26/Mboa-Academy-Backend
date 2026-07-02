@@ -39,7 +39,7 @@
     "mail.subject.forgot.password": "Vous avez oublié votre mot de passe",
     "current.password.invalid": "The current password is incorrect !",
     "mail.confirm.register": "Un email de confirmation a été envoyé à votre adresse email.",
-    "mail.error.sending": "Une erreur s'est produite lors de l'envoi de l'email.",
+    "mail.error.sending": "Une erreur inattendue s'est produite lors de l'envoi de l'email.",
     "payment.failed": "Une erreur s'est produite lors du traitement du paiement ! Veuillez Réessayer",
     "payment.success": "Paiement traité avec succès !"
   }

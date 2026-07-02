@@ -1,23 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as dotenv from 'dotenv';
-import * as path from 'path';
-import * as fs from 'fs';
 
+// En local, charge le fichier .env s'il existe. Sur Render, les variables
+// sont déjà dans process.env — dotenv.config() ne fait rien si le fichier est absent.
 dotenv.config();
-
-const paths: any = {
-	test: '../../../.env.test',
-	dev: '../../../.env',
-	production: '../../.env.prod',
-};
-
-const configPath: string = path.resolve(__dirname, paths[process.env.NODE_ENV || 'dev']);
-
-const envConfig: dotenv.DotenvParseOutput = dotenv.parse(fs.readFileSync(configPath));
-
-for (const k in envConfig) {
-	process.env[k] = envConfig[k];
-}
 
 const e: any = process.env;
 

@@ -4,8 +4,9 @@
   "main": "index.ts",
   "scripts": {
     "tsc": "tsc",
-    "start": "ts-node-dev --respawn ./app/index.ts",
-    "dev": "nodemon ./app/index.ts",
+    "build": "tsc",
+    "start": "node ./build/index.js",
+    "dev": "ts-node-dev --respawn ./app/index.ts",
     "lint": "eslint './app**/*.{ts}'",
     "test": "echo \"Error: no test specified\" && exit 1",
 
