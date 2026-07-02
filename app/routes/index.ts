@@ -34,6 +34,7 @@ class Routes {
 		app.use(cors({
 			origin: [
 				process.env.FRONTEND_URL || 'http://localhost:5173',
+				process.env.ADMIN_URL || 'http://localhost:5174',
 				/\.vercel\.app$/,   // autorise tous les sous-domaines vercel.app (previews)
 			],
 			credentials: true,
