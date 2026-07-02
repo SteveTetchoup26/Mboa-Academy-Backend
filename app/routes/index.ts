@@ -29,9 +29,15 @@ class Routes {
 	static init(app: express.Application): void {
 		const router: express.Router = express.Router();
 
-		// Express middleware
+        // Express middleware
         app.use(helmet());
-		app.use(cors());
+		app.use(cors({
+			origin: [
+				process.env.FRONTEND_URL || 'http://localhost:5173',
+				/\.vercel\.app$/,   // autorise tous les sous-domaines vercel.app (previews)
+			],
+			credentials: true,
+		}));
 		app.use(bodyParser.urlencoded({ extended: true }));
 		app.use(bodyParser.json());
 
