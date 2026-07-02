@@ -40,7 +40,7 @@ const storage: multer.StorageEngine = multer.diskStorage({
         cb(null, folder);
       },
 
-    filename(req: Request, file: Express.Multer.File, fn: (error: Error | null, filename: string) => void): void {
+    filename(req: Request, file: any, fn: (error: Error | null, filename: string) => void): void {
         fn(null, `${new Date().getTime().toString()}-${file.originalname}${path.extname(file.originalname)}`);
     }
 })
