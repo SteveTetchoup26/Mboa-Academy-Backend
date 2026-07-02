@@ -13,6 +13,6 @@ export async function runSeeders(sequelize: Sequelize) {
 
     } catch (error) {
         console.error('Erreur lors de l\'exécution des seeders:', error);
-        throw error;
+        // Ne pas throw — un échec du seeder ne doit pas crasher l'application
     }
-}
+}
