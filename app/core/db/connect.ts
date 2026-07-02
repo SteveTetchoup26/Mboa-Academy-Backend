@@ -4,6 +4,9 @@ import * as path from 'path';
 
 
 
+// En dev (ts-node), les fichiers sont .ts. En prod (node build/), ils sont .js.
+const modelExtension = __filename.endsWith('.ts') ? '.model.ts' : '.model.js';
+
 const sequelize = new Sequelize({
     database: config.DB_NAME,
     host: config.DB_HOST,
@@ -18,7 +21,7 @@ const sequelize = new Sequelize({
             rejectUnauthorized: false, // requis pour Supabase
         }
     },
-    models: [path.join(__dirname, '../../models/*/*.model.ts')],
+    models: [path.join(__dirname, `../../models/*/*${modelExtension}`)],
     modelMatch: (filename: string, member) => {
 		return filename.substring(0, filename.indexOf('.model')) === member.toLowerCase()
 	}
