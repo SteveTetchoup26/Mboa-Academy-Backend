@@ -4,12 +4,11 @@
   "main": "index.ts",
   "scripts": {
     "tsc": "tsc",
-    "build": "tsc",
+    "build": "tsc && copyfiles -u 1 \"app/**/*.html\" \"app/**/*.json\" build/",
     "start": "node ./build/index.js",
     "dev": "ts-node-dev --respawn ./app/index.ts",
     "lint": "eslint './app**/*.{ts}'",
     "test": "echo \"Error: no test specified\" && exit 1",
-
     "db:seed": "ts-node app/scripts/seed.ts",
     "seed:admin": "ts-node -e \"require('./app/seeders/seed-admin').seedSuperAdmin().then(() => process.exit(0))\""
   },
@@ -61,6 +60,7 @@
     "@types/validator": "^13.12.2",
     "@typescript-eslint/eslint-plugin": "^8.23.0",
     "@typescript-eslint/parser": "^8.23.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^9.19.0",
     "jest": "^29.7.0",
     "mocha": "^11.1.0",
