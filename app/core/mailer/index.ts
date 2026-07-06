@@ -8,16 +8,21 @@ import * as config from '../config';
 // import { logger } from '../logger';
 import { i18next } from '../../core/i18n'
 
+const smtpTransport = nodemailer.createTransport({
+  service: 'gmail',
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
+  connectionTimeout: 20000,
+  auth: {
+    user: config.MAIL_USERNAME,
+    pass: config.MAIL_PASSWORD,
+  },
+});
+
 class Mailer {
   static async sendMail(data: any): Promise<void> {
     try {
-      const smtpTransport = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: config.MAIL_USERNAME,
-          pass: config.MAIL_PASSWORD,
-        },
-      });
       const language = i18next.language || 'fr';
       const filePath = path.join(__dirname, `./templates/${language}/${data.template}.html`);
       const source = await fs.readFile(filePath, 'utf8');
