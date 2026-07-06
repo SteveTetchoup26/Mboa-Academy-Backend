@@ -11,13 +11,13 @@ import { i18next } from '../../core/i18n'
 class Mailer {
   static async sendMail(data: any): Promise<void> {
     try {
-      const smtpTransport = nodemailer.createTransport(
-        sgTransport({
-          auth: {
-            api_key: config.SENDGRID_API_KEY,
-          },
-        })
-      );
+      const smtpTransport = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: config.MAIL_USERNAME,
+          pass: config.MAIL_PASSWORD,
+        },
+      });
       const language = i18next.language || 'fr';
       const filePath = path.join(__dirname, `./templates/${language}/${data.template}.html`);
       const source = await fs.readFile(filePath, 'utf8');
