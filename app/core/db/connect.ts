@@ -15,12 +15,14 @@ const sequelize = new Sequelize({
     password: config.DB_PASSWORD,
     port: config.DB_PORT,
     logging: false,
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false, // requis pour Supabase
+    ...(config.ENV !== 'dev' && {
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false, // requis pour Supabase
+            }
         }
-    },
+    }),
     models: [path.join(__dirname, `../../models/*/*${modelExtension}`)],
     modelMatch: (filename: string, member) => {
 		return filename.substring(0, filename.indexOf('.model')) === member.toLowerCase()

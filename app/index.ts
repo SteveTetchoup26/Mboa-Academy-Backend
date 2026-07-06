@@ -19,15 +19,17 @@ const server: http.Server = http.createServer(app);
 Routes.init(app);
 
 
-server.listen(port, async() => {
+const startServer = async () => {
     await dbConnection();
-
     await runSeeders(sequelize);
-
     // await Locale.init();
     await initI18n();
 
-    console.log(`Server started on port ${port}`);
-})
+    server.listen(port, () => {
+        console.log(`Server started on port ${port}`);
+    });
+};
 
-export { server} 
+startServer();
+
+export { server }
