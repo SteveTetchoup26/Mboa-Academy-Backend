@@ -18,7 +18,8 @@ class Mailer {
           },
         })
       );
-      const filePath = path.join(__dirname, `./templates/${i18next.language}/${data.template}.html`);
+      const language = i18next.language || 'fr';
+      const filePath = path.join(__dirname, `./templates/${language}/${data.template}.html`);
       const source = await fs.readFile(filePath, 'utf8');
       const template = handlebars.compile(source);
       const html = template(data.context);
