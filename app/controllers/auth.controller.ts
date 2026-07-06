@@ -53,6 +53,14 @@ class AuthController {
                 return res.status(400).json({ error: "Invalid status or role" });
             }
 
+            const existingUser = await User.findOne({ where: { email } });
+            if (existingUser) {
+                return res.status(400).json({ 
+                  success: false, 
+                  error: "Cet email est déjà utilisé." 
+                });
+            }
+
             const password: string = bcrypt.hashSync(req.body.password, 10);
             const emailToken: string = bcrypt.hashSync(email, 8);
 
