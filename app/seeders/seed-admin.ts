@@ -20,8 +20,8 @@ export async function seedSuperAdmin() {
             return existingAdmin;
         }
 
-        const adminRole = await Role.findOne({ 
-            where: { title: 'Admin' } 
+        const adminRole = await Role.findOne({
+            where: { title: 'Super Admin' }
         });
 
         const activeStatus = await UserStatus.findOne({ 
@@ -29,7 +29,7 @@ export async function seedSuperAdmin() {
         });
 
         if (!adminRole) {
-            throw new Error('Le rôle Admin n\'existe pas. Vérifiez que les hooks @AfterSync se sont exécutés.');
+            throw new Error('Le rôle Super Admin n\'existe pas. Vérifiez que les hooks @AfterSync se sont exécutés.');
         }
 
         if (!activeStatus) {

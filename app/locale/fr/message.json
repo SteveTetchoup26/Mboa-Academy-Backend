@@ -41,6 +41,13 @@
     "mail.confirm.register": "Un email de confirmation a été envoyé à votre adresse email.",
     "mail.error.sending": "Une erreur inattendue s'est produite lors de l'envoi de l'email.",
     "payment.failed": "Une erreur s'est produite lors du traitement du paiement ! Veuillez Réessayer",
-    "payment.success": "Paiement traité avec succès !"
+    "payment.success": "Paiement traité avec succès !",
+    "institution.created": "Établissement créé avec succès !",
+    "institution.admin.exists": "Cet utilisateur est déjà un administrateur de cet établissement.",
+    "institution.admin.added": "Administrateur ajouté avec succès !",
+    "institution.admin.removed": "Administrateur retiré avec succès !",
+    "institution.approved": "Établissement approuvé avec succès !",
+    "institution.rejected": "Établissement rejeté !",
+    "institution.admin.cannot.remove.self": "Vous ne pouvez pas vous retirer vous-même."
   }
   

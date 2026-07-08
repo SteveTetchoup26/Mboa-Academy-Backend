@@ -3,7 +3,7 @@ import * as path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { Request } from 'express';
-import { UPLOAD_DEFAULT_PATH, UPLOAD_DOCUMENT_USER_PATH, UPLOAD_DOCUMENT_ADMIN_PATH, UPLOAD_PAYMENT_METHOD_PATH, UPLOAD_COVER_COURSE_PATH, UPLOAD_LESSON_VIDEO_PATH } from '../core/config';
+import { UPLOAD_DEFAULT_PATH, UPLOAD_DOCUMENT_USER_PATH, UPLOAD_DOCUMENT_ADMIN_PATH, UPLOAD_PAYMENT_METHOD_PATH, UPLOAD_COVER_COURSE_PATH, UPLOAD_LESSON_VIDEO_PATH, UPLOAD_INSTITUTION_LOGO_PATH } from '../core/config';
 
 
 
@@ -28,6 +28,9 @@ const storage: multer.StorageEngine = multer.diskStorage({
               break;
             case "lessonVideo":
               folder = UPLOAD_LESSON_VIDEO_PATH;
+              break;
+            case "institutionLogo":
+              folder = UPLOAD_INSTITUTION_LOGO_PATH;
               break;
             default:
                 folder = UPLOAD_DEFAULT_PATH;

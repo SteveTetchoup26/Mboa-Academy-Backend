@@ -1,7 +1,9 @@
 export enum RoleType {
+    SUPER_ADMIN = 'Super Admin',
     ADMIN = 'Admin',
     STUDENT = 'Student',
-    INSTRUCTOR = 'Instructor'
+    INSTRUCTOR = 'Instructor',
+    INSTITUTION = 'Institution'
 }
 
 export enum StatusUser {
@@ -57,8 +59,24 @@ export enum MethodPayment {
     ECOCASH = 'Ecocash',
 }
 
+export enum InstitutionType {
+    UNIVERSITY = 'University',
+    SCHOOL = 'School',
+    TRAINING_CENTER = 'Training Center',
+    OTHER = 'Other'
+}
+
+export enum InstitutionStatus {
+    PENDING = 'Pending',
+    ACTIVE = 'Active',
+    REJECTED = 'Rejected',
+    SUSPENDED = 'Suspended',
+    ARCHIVED = 'Archived'
+}
+
 export interface CustomRequest extends Request {
     userId: number;
+    institutionAdminRole?: string;
 }
 
 export type TokenInfo = {

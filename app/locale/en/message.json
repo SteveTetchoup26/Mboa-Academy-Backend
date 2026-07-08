@@ -40,6 +40,13 @@
     "mail.confirm.register": "A confirmation email has been sent to your email address.",
     "mail.error.sending": "An error has occurred while sending the email.",
     "payment.failed": "An error has occurred during payment processing! Try again",
-    "payment.success": "Payment successfully processed!"
+    "payment.success": "Payment successfully processed!",
+    "institution.created": "Institution created successfully!",
+    "institution.admin.exists": "This user is already an admin of this institution.",
+    "institution.admin.added": "Admin added successfully!",
+    "institution.admin.removed": "Admin removed successfully!",
+    "institution.approved": "Institution approved successfully!",
+    "institution.rejected": "Institution rejected!",
+    "institution.admin.cannot.remove.self": "You cannot remove yourself as admin."
   }
   

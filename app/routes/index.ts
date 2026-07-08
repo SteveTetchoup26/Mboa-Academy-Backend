@@ -14,6 +14,7 @@ import { CourseRoute } from './course.route';
 import { EnrollmentRoute } from './enrollment.route';
 import { PaymentRoute } from './payment.route';
 import { AdminRoute } from './admin/auth.route';
+import { InstitutionRoute } from './institution.route';
 
 /**
  * Global router configuration of the application
@@ -70,7 +71,8 @@ class Routes {
 		app.use('/', new EnrollmentRoute().router);
 
 		app.use('/', new AdminRoute().router);
-		
+
+		app.use('/', new InstitutionRoute().router);
 	}
 }
 
