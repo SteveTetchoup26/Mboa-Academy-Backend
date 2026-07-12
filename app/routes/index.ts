@@ -16,6 +16,7 @@ import { PaymentRoute } from './payment.route';
 import { AdminRoute } from './admin/auth.route';
 import { InstitutionRoute } from './institution.route';
 import { ReviewRoute } from './review.route';
+import { WebinarRoute } from './webinar.route';
 
 /**
  * Global router configuration of the application
@@ -79,6 +80,9 @@ class Routes {
 
 	//reviews
 	app.use('/', new ReviewRoute().router);
+
+	//webinars
+	app.use('/', new WebinarRoute().router);
 	}
 }
 

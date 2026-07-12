@@ -69,7 +69,8 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         '/courses',
         '/reviews/course',
         '/users',
-        '/uploads/others'
+        '/uploads/others',
+        '/webinars',
     ];
     let routeName: string = '';
 
@@ -79,7 +80,9 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         return res.status(401).json({ message: 'unauthorized' });
     }
 
-    const isAllowed = allowedRoutes.includes(routeName) || allowedRoutes.some(route => new RegExp(`^${route}/\\d+$`).test(routeName));
+    const isAllowed = allowedRoutes.includes(routeName)
+        || allowedRoutes.some(route => new RegExp(`^${route}/\\d+$`).test(routeName))
+        || /^\/webinars\/\d+\/room$/.test(routeName);
 
     if (isAllowed) {
         return next();
