@@ -33,6 +33,9 @@ class InstitutionRoute {
         // Get current user's institution(s)
         this.router.get(`${prefix}/my-institution`, InstitutionController.myInstitution);
 
+        // User search (institution admins) — MUST be before /:id to avoid route conflict
+        this.router.get(`${prefix}/search-users`, InstitutionController.searchUsers);
+
         // Get one institution
         this.router.get(`${prefix}/:id`, InstitutionController.one);
 
@@ -70,6 +73,17 @@ class InstitutionRoute {
 
         // Publish a course
         this.router.post(`${prefix}/:id/courses/:courseId/publish`, InstitutionController.publishCourse);
+
+        // ───────── Student Enrollment ─────────
+
+        // List enrolled students for a course
+        this.router.get(`${prefix}/:id/courses/:courseId/students`, InstitutionController.listCourseStudents);
+
+        // Enroll students by email (bulk)
+        this.router.post(`${prefix}/:id/courses/:courseId/students`, InstitutionController.enrollCourseStudents);
+
+        // Remove a student from a course
+        this.router.delete(`${prefix}/:id/courses/:courseId/students/:studentId`, InstitutionController.removeCourseStudent);
 
         // ───────── Super Admin only ─────────
 

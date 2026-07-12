@@ -26,6 +26,7 @@ import CourseCategory from '../models/course/courseCategory.model';
 import CoverCourse from '../models/course/coverCourse.model';
 import VideoLesson from '../models/course/videoLesson.model';
 import Enrollment from '../models/enrollment/enrollment.model';
+import EnrollmentStatus from '../models/enrollment/enrollmentStatus.model';
 import Certificate from '../models/course/certificate.model';
 import { Sequelize } from 'sequelize-typescript';
 import { Op } from 'sequelize';
@@ -1066,6 +1067,214 @@ class InstitutionController {
         const part1 = Array.from({ length: 4 }, () => chars[crypto.randomInt(0, chars.length)]).join('');
         const part2 = Array.from({ length: 4 }, () => chars[crypto.randomInt(0, chars.length)]).join('');
         return `INST-${part1}-${part2}`;
+    }
+
+    /**
+     * searchUsers()
+     *
+     * Search users by name or email (for autocomplete in student management).
+     * Only returns users with role 'Apprenant' (Student).
+     *
+     * @param {CustomRequest} req - Request object with ?q= query param
+     * @param {Response} res - Response object
+     */
+    public static async searchUsers(req: CustomRequest | any, res: Response): Promise<any> {
+        try {
+            const { q } = req.query;
+            if (!q || (q as string).length < 2) {
+                return res.status(200).json({ users: [] });
+            }
+
+            const search = (q as string).toLowerCase();
+
+            // Trouver le rôle "Apprenant"
+            const studentRole = await Role.findOne({ where: { title: 'Apprenant' } });
+
+            // Chercher les utilisateurs par email ou nom
+            const users = await User.findAll({
+                where: {
+                    [Op.or]: [
+                        { email: { [Op.iLike]: `%${search}%` } },
+                        { name: { [Op.iLike]: `%${search}%` } },
+                    ],
+                },
+                attributes: ['id', 'name', 'email'],
+                limit: 10,
+                order: [['name', 'ASC']],
+            });
+
+            return res.status(200).json({ users });
+        } catch (e: any) {
+            console.error(e);
+            return res.status(500).json({ message: e.message || 'Erreur serveur' });
+        }
+    }
+
+    /**
+     * listCourseStudents()
+     *
+     * Get all enrolled students for a course (with user info).
+     *
+     * @param {CustomRequest} req - Request object
+     * @param {Response} res - Response object
+     */
+    public static async listCourseStudents(req: CustomRequest | any, res: Response): Promise<any> {
+        try {
+            const { id, courseId } = req.params;
+
+            // Vérifier que l'utilisateur est admin de l'institution
+            const isAdmin = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, Number(id));
+            if (!isAdmin) {
+                return res.status(403).json({ message: 'Non autorisé' });
+            }
+
+            const course = await Course.findByPk(courseId);
+            if (!course) {
+                return res.status(404).json({ message: 'Cours introuvable' });
+            }
+
+            const enrollments = await Enrollment.findAll({
+                where: { course_id: courseId },
+                include: [
+                    { model: User, as: 'student', attributes: ['id', 'name', 'email'] },
+                    { model: EnrollmentStatus, as: 'status' },
+                ],
+                order: [['createdAt', 'DESC']],
+            });
+
+            return res.status(200).json({
+                enrollments: enrollments.map((e: any) => ({
+                    id: e.id,
+                    studentId: e.student_id,
+                    name: e.student?.name,
+                    email: e.student?.email,
+                    status: e.status?.title,
+                    progress: e.progress,
+                    enrolledAt: e.createdAt,
+                })),
+                total: enrollments.length,
+            });
+        } catch (e: any) {
+            console.error(e);
+            return res.status(500).json({ message: e.message || 'Erreur serveur' });
+        }
+    }
+
+    /**
+     * enrollCourseStudents()
+     *
+     * Enroll multiple students in a course by email.
+     * Only students with existing accounts can be enrolled.
+     *
+     * @param {CustomRequest} req - Request object with { emails: string[] }
+     * @param {Response} res - Response object
+     */
+    public static async enrollCourseStudents(req: CustomRequest | any, res: Response): Promise<any> {
+        try {
+            const { id, courseId } = req.params;
+            const { emails } = req.body;
+
+            // Vérifier que l'utilisateur est admin de l'institution
+            const isAdmin = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, Number(id));
+            if (!isAdmin) {
+                return res.status(403).json({ message: 'Non autorisé' });
+            }
+
+            if (!emails || !Array.isArray(emails) || emails.length === 0) {
+                return res.status(400).json({ message: 'La liste d\'emails est requise' });
+            }
+
+            const course = await Course.findByPk(courseId);
+            if (!course) {
+                return res.status(404).json({ message: 'Cours introuvable' });
+            }
+
+            // Statut d'inscription par défaut
+            const initStatus = await EnrollmentStatus.findOne({ where: { title: 'Init' } });
+            if (!initStatus) {
+                return res.status(500).json({ message: 'Statut d\'inscription introuvable' });
+            }
+
+            const results = {
+                enrolled: [] as string[],
+                alreadyEnrolled: [] as string[],
+                notFound: [] as string[],
+                errors: [] as { email: string; reason: string }[],
+            };
+
+            for (const email of emails) {
+                const trimmedEmail = email.trim().toLowerCase();
+                if (!trimmedEmail) continue;
+
+                // Trouver l'utilisateur par email
+                const user = await User.findOne({ where: { email: trimmedEmail } });
+                if (!user) {
+                    results.notFound.push(trimmedEmail);
+                    continue;
+                }
+
+                // Vérifier s'il est déjà inscrit
+                const existing = await Enrollment.findOne({
+                    where: { course_id: courseId, student_id: user.id },
+                });
+                if (existing) {
+                    results.alreadyEnrolled.push(trimmedEmail);
+                    continue;
+                }
+
+                try {
+                    await Enrollment.create({
+                        course_id: Number(courseId),
+                        student_id: user.id,
+                        status_id: initStatus.id,
+                        progress: 0,
+                    });
+                    results.enrolled.push(trimmedEmail);
+                } catch (err: any) {
+                    results.errors.push({ email: trimmedEmail, reason: err.message });
+                }
+            }
+
+            return res.status(200).json(results);
+        } catch (e: any) {
+            console.error(e);
+            return res.status(500).json({ message: e.message || 'Erreur serveur' });
+        }
+    }
+
+    /**
+     * removeCourseStudent()
+     *
+     * Remove a student enrollment from a course.
+     *
+     * @param {CustomRequest} req - Request object
+     * @param {Response} res - Response object
+     */
+    public static async removeCourseStudent(req: CustomRequest | any, res: Response): Promise<any> {
+        try {
+            const { id, courseId, studentId } = req.params;
+
+            // Vérifier que l'utilisateur est admin de l'institution
+            const isAdmin = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, Number(id));
+            if (!isAdmin) {
+                return res.status(403).json({ message: 'Non autorisé' });
+            }
+
+            const enrollment = await Enrollment.findOne({
+                where: { course_id: courseId, student_id: studentId },
+            });
+
+            if (!enrollment) {
+                return res.status(404).json({ message: 'Inscription introuvable' });
+            }
+
+            await enrollment.destroy();
+
+            return res.status(200).json({ message: 'Étudiant retiré du cours' });
+        } catch (e: any) {
+            console.error(e);
+            return res.status(500).json({ message: e.message || 'Erreur serveur' });
+        }
     }
 }
 
