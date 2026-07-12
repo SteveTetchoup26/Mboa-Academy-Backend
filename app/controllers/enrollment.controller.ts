@@ -10,6 +10,7 @@ import Module from '../models/course/module.model';
 import Lesson from '../models/course/lesson.model';
 import EnrollmentEvolution from '../models/enrollment/enrollmentEvolution.model';
 import Course from '../models/course/course.model';
+import { Op } from 'sequelize';
 
 
 /**
@@ -182,6 +183,69 @@ class EnrollmentController {
         }
     }
 
+
+    /**
+     * enrollWithCode()
+     *
+     * Enroll in a private course using an access code
+     *
+     * @param {Request} req: Request object
+     * @param {Response} res: Response object
+     *
+     * @return Object
+     */
+    public static async enrollWithCode(req: CustomRequest | any, res: Response): Promise<any> {
+        const { course_id, access_code } = req.body;
+
+        try {
+            if (!course_id || !access_code) {
+                return res.status(400).json({ message: 'course_id et access_code sont requis' });
+            }
+
+            const course: Course | null = await Course.findByPk(course_id);
+            if (!course) {
+                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Course' }) });
+            }
+
+            if (course.visibility !== 'private') {
+                return res.status(400).json({ message: 'Ce cours n\'est pas privé' });
+            }
+
+            if (course.access_code !== access_code) {
+                return res.status(400).json({ message: 'Code d\'accès invalide' });
+            }
+
+            // Vérifier si déjà inscrit
+            const existing = await Enrollment.findOne({
+                where: { course_id, student_id: req.userId }
+            });
+            if (existing) {
+                return res.status(400).json({ message: 'Vous êtes déjà inscrit à ce cours' });
+            }
+
+            const initStatus: EnrollmentStatus | null = await EnrollmentStatus.findOne({
+                where: { title: 'Init' }
+            });
+            if (!initStatus) {
+                return res.status(500).json({ message: 'Statut Init introuvable' });
+            }
+
+            const enrollment = await Enrollment.create({
+                course_id,
+                student_id: req.userId,
+                status_id: initStatus.id,
+                progress: 0,
+            });
+
+            return res.status(201).json({
+                message: 'Inscription réussie',
+                enrollment,
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ error: i18next.t('internal.error') });
+        }
+    }
 
     // TODO for evolution lesson
 

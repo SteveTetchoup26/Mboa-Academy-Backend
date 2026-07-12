@@ -3,7 +3,9 @@ import { Request, Response } from 'express';
 import * as bcrypt from 'bcryptjs';
 
 import { CustomRequest } from '../core/types';
+import * as config from '../core/config';
 import { i18next } from '../core/i18n';
+import mailer from '../core/mailer';
 import Institution from '../models/institution/institution.model';
 import InstitutionTypeModel from '../models/institution/institutionType.model';
 import InstitutionStatusModel from '../models/institution/institutionStatus.model';
@@ -13,8 +15,21 @@ import UserStatus from '../models/authentication/userStatus.model';
 import Role from '../models/authentication/role.model';
 import UserRole from '../models/authentication/userRole.model';
 import Course from '../models/course/course.model';
+import CourseStatus from '../models/course/courseStatus.model';
+import Module from '../models/course/module.model';
+import Lesson from '../models/course/lesson.model';
+import Objective from '../models/course/objective.model';
+import Feature from '../models/course/feature.model';
+import LanguageCourse from '../models/course/language.model';
+import Category from '../models/course/category.model';
+import CourseCategory from '../models/course/courseCategory.model';
+import CoverCourse from '../models/course/coverCourse.model';
+import VideoLesson from '../models/course/videoLesson.model';
 import Enrollment from '../models/enrollment/enrollment.model';
 import Certificate from '../models/course/certificate.model';
+import { Sequelize } from 'sequelize-typescript';
+import { Op } from 'sequelize';
+import * as crypto from 'crypto';
 
 
 /**
@@ -29,7 +44,7 @@ class InstitutionController {
      *
      * Create a new institution — accessible without authentication.
      * If the creator doesn't have an account yet, one is created automatically
-     * with the "Institution" role and "Active" status.
+     * with the "Institution" role and "Pending" status (email verification required).
      * If the creator already has an account, they are linked as admin.
      * The institution default status is 'Pending' until a Super Admin validates it.
      *
@@ -49,8 +64,33 @@ class InstitutionController {
             let creatorUser: User | null = null;
 
             if (creator_email) {
-                creatorUser = await User.findOne({ where: { email: creator_email } });
+                creatorUser = await User.findOne({
+                    where: { email: creator_email },
+                    include: [{ model: Role }]
+                });
             }
+
+            // ── Vérifications si l'utilisateur existe déjà ──
+            if (creatorUser) {
+                const userRoles = creatorUser.roles?.map((r: any) => r.title) || [];
+
+                // Un apprenant ou formateur ne peut pas créer d'institution
+                if (userRoles.includes('Student') || userRoles.includes('Instructor')) {
+                    return res.status(400).json({
+                        message: 'Vous ne pouvez pas créer d\'institution avec un compte apprenant ou formateur. Utilisez un autre email ou créez un nouveau compte.'
+                    });
+                }
+
+                // Un utilisateur ne peut gérer qu'une seule institution
+                const existingAdmin = await InstitutionAdmin.findOne({ where: { user_id: creatorUser.id } });
+                if (existingAdmin) {
+                    return res.status(400).json({
+                        message: 'Vous gérez déjà une institution. Un utilisateur ne peut gérer qu\'une seule institution.'
+                    });
+                }
+            }
+
+            let emailToken = '';
 
             if (!creatorUser) {
                 // Créer un nouvel utilisateur
@@ -58,19 +98,21 @@ class InstitutionController {
                     return res.status(400).json({ message: 'Les informations du créateur (nom, email, mot de passe) sont requises' });
                 }
 
-                const activeStatus: UserStatus | null = await UserStatus.findOne({ where: { title: 'Active' } });
-                if (!activeStatus) {
-                    return res.status(500).json({ message: 'Statut Active introuvable' });
+                const pendingStatus: UserStatus | null = await UserStatus.findOne({ where: { title: 'Pending' } });
+                if (!pendingStatus) {
+                    return res.status(500).json({ message: 'Statut Pending introuvable' });
                 }
 
                 const hashedPassword = await bcrypt.hash(creator_password, 10);
+                emailToken = bcrypt.hashSync(creator_email, 8);
 
                 creatorUser = await User.create({
                     name: creator_name,
                     email: creator_email,
                     password: hashedPassword,
-                    status_id: activeStatus.id,
+                    status_id: pendingStatus.id,
                     phone_number: creator_phone || '',
+                    email_token: emailToken,
                 }, { transaction });
 
                 // Assigner le rôle Institution
@@ -129,17 +171,42 @@ class InstitutionController {
                 role: 'admin',
             }, { transaction });
 
+            // ── 4. Envoyer l'email de confirmation si nouveau compte ──
+            if (emailToken) {
+                try {
+                    await mailer.sendMail({
+                        to: creatorUser.email,
+                        subject: 'mail.subject.confirm.account',
+                        template: 'confirm-account-email',
+                        context: {
+                            url: `${config.WEB_APP_URL}/${config.CONFIRM_ACCOUNT_PATH}?token=${emailToken}`,
+                            name: creatorUser.name,
+                            email: creatorUser.email,
+                        },
+                    });
+                } catch (emailError) {
+                    await transaction?.rollback();
+                    console.error("Erreur d'envoi email :", emailError);
+                    return res.status(500).json({
+                        success: false,
+                        message: i18next.t('mail.error.sending')
+                    });
+                }
+            }
+
             await transaction?.commit();
+
+            const userCreated = !!emailToken;
 
             return res.status(201).json({
                 message: i18next.t('institution.created'),
                 institution,
-                user: {
+                user: userCreated ? {
                     id: creatorUser.id,
                     name: creatorUser.name,
                     email: creatorUser.email,
-                    message: 'Compte créé. Vous pouvez maintenant vous connecter.'
-                }
+                    message: 'Compte créé. Veuillez vérifier votre adresse email avant de vous connecter.'
+                } : undefined
             });
         } catch (err) {
             await transaction?.rollback();
@@ -508,7 +575,22 @@ class InstitutionController {
 
             const courses: Array<Course> = await Course.findAll({
                 where: { institution_id: req.params.id },
-                include: [{ model: Institution, attributes: ['id', 'name'] }],
+                attributes: {
+                    include: [
+                        [
+                            Sequelize.literal(`(
+                                SELECT COUNT(*) FROM "enrollment" AS "enrollment"
+                                WHERE "enrollment"."course_id" = "Course"."id"
+                            )`),
+                            'enrolledCount'
+                        ]
+                    ]
+                },
+                include: [
+                    { model: Institution, attributes: ['id', 'name'] },
+                    { model: User, as: 'instructor', attributes: ['id', 'name', 'email'] },
+                    { model: CourseStatus, attributes: ['id', 'title'] },
+                ],
             });
 
             return res.status(200).json({ courses });
@@ -559,6 +641,395 @@ class InstitutionController {
         }
     }
 
+    // ───────── Course Management ─────────
+
+    /**
+     * createCourse()
+     *
+     * Create a course for an institution
+     * — Institution admin only
+     *
+     * @param {Request} req: Request object
+     * @param {Response} res: Response object
+     *
+     * @return Object
+     */
+    public static async createCourse(req: CustomRequest | any, res: Response): Promise<any> {
+        const institutionId: number = req.params.id;
+
+        // Support both JSON body and FormData (JSON.stringified 'data' field)
+        const body = req.body.data ? JSON.parse(req.body.data) : req.body;
+        const {
+            title, description, price, original_price,
+            instructor_id, visibility,
+            modules, objectives, features,
+            language, categories,
+        } = body;
+
+        try {
+            const isAuthorized = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, institutionId);
+            if (!isAuthorized) {
+                return res.status(403).json({ message: i18next.t('unauthorized') });
+            }
+
+            const institution: Institution | null = await Institution.findByPk(institutionId);
+            if (!institution) {
+                return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Institution' }) });
+            }
+
+            // Statut par défaut : 'Submit' (en attente de validation)
+            const submitStatus: CourseStatus | null = await CourseStatus.findOne({ where: { title: 'Submit' } });
+            if (!submitStatus) {
+                return res.status(500).json({ message: 'Statut Submit introuvable' });
+            }
+
+            // Générer un code d'accès si privé
+            let accessCode: string | null = null;
+            if (visibility === 'private') {
+                accessCode = InstitutionController.generateAccessCode();
+            }
+
+            // Langue
+            let languageId: number | null = null;
+            if (language && language.description) {
+                const lang = await LanguageCourse.create({ code: language.code || 'FR', description: language.description });
+                languageId = lang.id;
+            }
+
+            const course = await Course.create({
+                title,
+                description,
+                price: price || 0,
+                original_price: original_price || null,
+                institution_id: institutionId,
+                instructor_id: instructor_id || null,
+                language_id: languageId,
+                status_id: submitStatus.id,
+                visibility: visibility || 'public',
+                access_code: accessCode,
+            });
+
+            // Créer les modules et leçons (avec vidéos)
+            const videoFiles = req.files && 'videos' in req.files ? (req.files as any).videos : [];
+            let videoIdx = 0;
+
+            if (modules && modules.length > 0) {
+                for (const moduleData of modules) {
+                    const mod = await Module.create({
+                        title: moduleData.title,
+                        resume: moduleData.resume || '',
+                        course_id: course.id,
+                    });
+
+                    if (moduleData.lessons && moduleData.lessons.length > 0) {
+                        for (const lessonData of moduleData.lessons) {
+                            const lesson = await Lesson.create({
+                                title: lessonData.title,
+                                resume: lessonData.resume || '',
+                                module_id: mod.id,
+                            });
+
+                            // Associer la vidéo à la leçon (positionnel)
+                            if (videoFiles[videoIdx]) {
+                                await VideoLesson.create({
+                                    lesson_id: lesson.id,
+                                    file_name: 'lessons_video/' + videoFiles[videoIdx].filename,
+                                    format: videoFiles[videoIdx].mimetype,
+                                });
+                            }
+                            videoIdx++;
+                        }
+                    }
+                }
+            }
+
+            // Créer les objectifs
+            if (objectives && objectives.length > 0) {
+                await Objective.bulkCreate(
+                    objectives.map((obj: string) => ({ title: obj, course_id: course.id }))
+                );
+            }
+
+            // Créer les fonctionnalités
+            if (features && features.length > 0) {
+                await Feature.bulkCreate(
+                    features.map((feat: string) => ({ title: feat, course_id: course.id }))
+                );
+            }
+
+            // Associer les catégories
+            if (categories && categories.length > 0) {
+                for (const categoryId of categories) {
+                    const cat = await Category.findByPk(categoryId);
+                    if (cat) {
+                        await CourseCategory.create({ course_id: course.id, category_id: cat.id });
+                    }
+                }
+            }
+
+            // Image de couverture (FormData)
+            if (req.files && 'cover_image' in req.files) {
+                const coverFile = (req.files as any).cover_image[0];
+                await CoverCourse.create({
+                    file_name: 'cover_course/' + coverFile.filename,
+                    format: coverFile.mimetype,
+                    course_id: course.id,
+                });
+            }
+
+            const created = await Course.findByPk(course.id, {
+                include: [
+                    { model: Institution, attributes: ['id', 'name'] },
+                    { model: User, as: 'instructor', attributes: ['id', 'name', 'email'] },
+                    { model: CourseStatus, attributes: ['id', 'title'] },
+                    { model: Module, include: [{ model: Lesson, attributes: ['id', 'title', 'resume'] }] },
+                    { model: Objective, attributes: ['id', 'title'] },
+                    { model: Feature, attributes: ['id', 'title'] },
+                ],
+            });
+
+            return res.status(201).json({ message: 'Cours créé avec succès', course: created });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ error: i18next.t('internal.error') });
+        }
+    }
+
+    /**
+     * updateCourse()
+     *
+     * Update a course of an institution
+     * — Institution admin only
+     *
+     * @param {Request} req: Request object
+     * @param {Response} res: Response object
+     *
+     * @return Object
+     */
+    public static async updateCourse(req: CustomRequest | any, res: Response): Promise<any> {
+        const institutionId: number = req.params.id;
+        const courseId: number = req.params.courseId;
+        const data: any = req.body;
+
+        try {
+            const isAuthorized = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, institutionId);
+            if (!isAuthorized) {
+                return res.status(403).json({ message: i18next.t('unauthorized') });
+            }
+
+            const course: Course | null = await Course.findOne({
+                where: { id: courseId, institution_id: institutionId }
+            });
+            if (!course) {
+                return res.status(404).json({ message: 'Cours introuvable' });
+            }
+
+            // Si on passe en privé et qu'il n'y a pas encore de code
+            if (data.visibility === 'private' && !course.access_code) {
+                data.access_code = InstitutionController.generateAccessCode();
+            }
+
+            // Si on passe en public, supprimer le code d'accès
+            if (data.visibility === 'public') {
+                data.access_code = null;
+            }
+
+            // Extraire les relations du body pour ne pas les passer à update()
+            const { modules, objectives, features, ...courseData } = data;
+
+            await Course.update(courseData, { where: { id: courseId } });
+
+            // Mettre à jour les modules et leçons
+            if (modules && modules.length > 0) {
+                // Supprimer les anciens modules (les leçons sont cascade)
+                const oldModules = await Module.findAll({ where: { course_id: courseId } });
+                for (const oldMod of oldModules) {
+                    await Lesson.destroy({ where: { module_id: oldMod.id } });
+                }
+                await Module.destroy({ where: { course_id: courseId } });
+
+                for (const moduleData of modules) {
+                    const mod = await Module.create({
+                        title: moduleData.title,
+                        resume: moduleData.resume || '',
+                        course_id: courseId,
+                    });
+
+                    if (moduleData.lessons && moduleData.lessons.length > 0) {
+                        for (const lessonData of moduleData.lessons) {
+                            await Lesson.create({
+                                title: lessonData.title,
+                                resume: lessonData.resume || '',
+                                module_id: mod.id,
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Mettre à jour les objectifs
+            if (objectives && objectives.length > 0) {
+                await Objective.destroy({ where: { course_id: courseId } });
+                await Objective.bulkCreate(
+                    objectives.map((obj: string) => ({ title: obj, course_id: courseId }))
+                );
+            }
+
+            // Mettre à jour les fonctionnalités
+            if (features && features.length > 0) {
+                await Feature.destroy({ where: { course_id: courseId } });
+                await Feature.bulkCreate(
+                    features.map((feat: string) => ({ title: feat, course_id: courseId }))
+                );
+            }
+
+            const updated = await Course.findByPk(courseId, {
+                include: [
+                    { model: Institution, attributes: ['id', 'name'] },
+                    { model: User, as: 'instructor', attributes: ['id', 'name', 'email'] },
+                    { model: CourseStatus, attributes: ['id', 'title'] },
+                    { model: Module, include: [{ model: Lesson, attributes: ['id', 'title', 'resume'] }] },
+                    { model: Objective, attributes: ['id', 'title'] },
+                    { model: Feature, attributes: ['id', 'title'] },
+                ],
+            });
+
+            return res.status(200).json({ message: 'Cours mis à jour', course: updated });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ error: i18next.t('internal.error') });
+        }
+    }
+
+    /**
+     * publishCourse()
+     *
+     * Publish a course (change status from 'Submit' to 'Published')
+     * — Institution admin only
+     *
+     * @param {Request} req: Request object
+     * @param {Response} res: Response object
+     *
+     * @return Object
+     */
+    public static async publishCourse(req: CustomRequest | any, res: Response): Promise<any> {
+        const institutionId: number = req.params.id;
+        const courseId: number = req.params.courseId;
+
+        try {
+            const isAuthorized = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, institutionId);
+            if (!isAuthorized) {
+                return res.status(403).json({ message: i18next.t('unauthorized') });
+            }
+
+            const course: Course | null = await Course.findOne({
+                where: { id: courseId, institution_id: institutionId }
+            });
+            if (!course) {
+                return res.status(404).json({ message: 'Cours introuvable' });
+            }
+
+            const publishedStatus: CourseStatus | null = await CourseStatus.findOne({ where: { title: 'Published' } });
+            if (!publishedStatus) {
+                return res.status(500).json({ message: 'Statut Published introuvable' });
+            }
+
+            await Course.update({ status_id: publishedStatus.id }, { where: { id: courseId } });
+
+            const updated = await Course.findByPk(courseId, {
+                include: [
+                    { model: Institution, attributes: ['id', 'name'] },
+                    { model: User, as: 'instructor', attributes: ['id', 'name', 'email'] },
+                    { model: CourseStatus, attributes: ['id', 'title'] },
+                ],
+            });
+
+            return res.status(200).json({ message: 'Cours publié avec succès', course: updated });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ error: i18next.t('internal.error') });
+        }
+    }
+
+    /**
+     * deleteCourse()
+     *
+     * Delete a course of an institution
+     * — Institution admin only
+     *
+     * @param {Request} req: Request object
+     * @param {Response} res: Response object
+     *
+     * @return Object
+     */
+    public static async deleteCourse(req: CustomRequest | any, res: Response): Promise<any> {
+        const institutionId: number = req.params.id;
+        const courseId: number = req.params.courseId;
+
+        try {
+            const isAuthorized = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, institutionId);
+            if (!isAuthorized) {
+                return res.status(403).json({ message: i18next.t('unauthorized') });
+            }
+
+            const course: Course | null = await Course.findOne({
+                where: { id: courseId, institution_id: institutionId }
+            });
+            if (!course) {
+                return res.status(404).json({ message: 'Cours introuvable' });
+            }
+
+            await Course.destroy({ where: { id: courseId } });
+
+            return res.status(200).json({ message: 'Cours supprimé avec succès' });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ error: i18next.t('internal.error') });
+        }
+    }
+
+    /**
+     * generateCourseAccessCode()
+     *
+     * Generate a new access code for a private course
+     * — Institution admin only
+     *
+     * @param {Request} req: Request object
+     * @param {Response} res: Response object
+     *
+     * @return Object
+     */
+    public static async generateCourseAccessCode(req: CustomRequest | any, res: Response): Promise<any> {
+        const institutionId: number = req.params.id;
+        const courseId: number = req.params.courseId;
+
+        try {
+            const isAuthorized = await InstitutionController.isSuperAdminOrInstitutionAdmin(req.userId, institutionId);
+            if (!isAuthorized) {
+                return res.status(403).json({ message: i18next.t('unauthorized') });
+            }
+
+            const course: Course | null = await Course.findOne({
+                where: { id: courseId, institution_id: institutionId }
+            });
+            if (!course) {
+                return res.status(404).json({ message: 'Cours introuvable' });
+            }
+
+            if (course.visibility !== 'private') {
+                return res.status(400).json({ message: 'Le cours doit être privé pour générer un code d\'accès' });
+            }
+
+            const accessCode = InstitutionController.generateAccessCode();
+            await Course.update({ access_code: accessCode }, { where: { id: courseId } });
+
+            return res.status(200).json({ message: 'Code d\'accès généré', access_code: accessCode });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ error: i18next.t('internal.error') });
+        }
+    }
+
     // ───────── Helpers ─────────
 
     /**
@@ -584,6 +1055,17 @@ class InstitutionController {
             where: { institution_id: institutionId, user_id: userId, role: 'admin' }
         });
         return !!institutionAdmin;
+    }
+
+    /**
+     * Generate a unique access code for a private course
+     * Format: INST-XXXX-XXXX
+     */
+    private static generateAccessCode(): string {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const part1 = Array.from({ length: 4 }, () => chars[crypto.randomInt(0, chars.length)]).join('');
+        const part2 = Array.from({ length: 4 }, () => chars[crypto.randomInt(0, chars.length)]).join('');
+        return `INST-${part1}-${part2}`;
     }
 }
 

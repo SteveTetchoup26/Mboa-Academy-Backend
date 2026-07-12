@@ -12,6 +12,7 @@ import Certificate from "./certificate.model";
 import Enrollment from "../enrollment/enrollment.model";
 import Module from "./module.model";
 import CoverCourse from "./coverCourse.model";
+import Review from "./review.model";
 import Payment from "../payment/payment.model";
 import Institution from "../institution/institution.model";
 
@@ -53,6 +54,12 @@ export default class Course extends Model {
     @Column
     original_price: number;
 
+    @Column(DataType.ENUM('public', 'private'))
+    visibility: string;
+
+    @Column(DataType.STRING)
+    access_code: string;
+
     @BelongsTo(() => User)
     instructor: User;
 
@@ -85,6 +92,9 @@ export default class Course extends Model {
 
     @HasMany(() => CoverCourse)
     cover_courses: CoverCourse[];
+
+    @HasMany(() => Review)
+    reviews: Review[];
 
     @HasMany(() => Payment)
     payments: Payment[];

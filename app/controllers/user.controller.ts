@@ -209,13 +209,12 @@ class UserController {
    * @return Object
    */
 	public static async becomeInstructor(req: CustomRequest|any, res: Response): Promise<any> {
-		const { email, phone_number, domain, job_title } = req.body;
+		const { phone_number, domain, job_title } = req.body;
 
 		try {
 			const user = await User.findOne({ 
 				where: { 
 					id: req.userId ,
-					email
 				}
 			});
 
@@ -247,7 +246,6 @@ class UserController {
 			const updatedUser: User | null  = await User.findOne({ 
 				where: { 
 					id: req.userId ,
-					email
 				}, 
 				attributes: { exclude: ['password', 'email_token', 'createdAt', 'updatedAt'] },
 				include: {

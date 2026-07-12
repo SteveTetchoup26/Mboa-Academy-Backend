@@ -51,6 +51,26 @@ class InstitutionRoute {
         this.router.post(`${prefix}/:id/admins`, InstitutionController.addAdmin);
         this.router.delete(`${prefix}/:id/admins/:userId`, InstitutionController.removeAdmin);
 
+        // ───────── Institution Course Management ─────────
+
+        // Create course for institution
+        this.router.post(`${prefix}/:id/courses/create`, uploadFiles.fields([
+            { name: 'cover_image', maxCount: 1 },
+            { name: 'videos', maxCount: 100 },
+        ]), InstitutionController.createCourse);
+
+        // Update course
+        this.router.put(`${prefix}/:id/courses/:courseId`, InstitutionController.updateCourse);
+
+        // Delete course
+        this.router.delete(`${prefix}/:id/courses/:courseId`, InstitutionController.deleteCourse);
+
+        // Generate/regenerate access code
+        this.router.post(`${prefix}/:id/courses/:courseId/generate-code`, InstitutionController.generateCourseAccessCode);
+
+        // Publish a course
+        this.router.post(`${prefix}/:id/courses/:courseId/publish`, InstitutionController.publishCourse);
+
         // ───────── Super Admin only ─────────
 
         // Validate (approve/reject) an institution

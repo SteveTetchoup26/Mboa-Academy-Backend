@@ -67,6 +67,7 @@ const authMiddleware: any = async (req: CustomRequest | any, res: Response, next
         '/institutions/create',
         '/categories',
         '/courses',
+        '/reviews/course',
         '/users',
         '/uploads/others'
     ];

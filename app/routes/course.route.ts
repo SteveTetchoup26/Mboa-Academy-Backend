@@ -29,6 +29,10 @@ class CourseRoute {
 
 		this.router.get(`${prefix}`, CourseController.all);
 
+		this.router.get(`${prefix}/admin/all`, CourseController.adminAll);
+
+		this.router.put(`${prefix}/validate/:id`, CourseController.validateCourse);
+
 		this.router.get(`${prefix}/instructor-courses`, CourseController.allCoursesByIntructor);
 
 		this.router.get(`${prefix}/enrolled`, CourseController.allCoursesEnrolled);

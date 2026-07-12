@@ -29,6 +29,9 @@ class EnrollmentRoute {
 
 		this.router.put(`${prefix}/update/:id`, EnrollmentController.update);
 
+		// Enroll in a private course with access code
+		this.router.post(`${prefix}/enroll-with-code`, EnrollmentController.enrollWithCode);
+
 		// this.router.delete(`${prefix}/delete/:id`, EnrollmentController.destroy);
 
 		this.router.post(`${prefix}/init-progress-lesson`, EnrollmentController.initProgressLesson);
