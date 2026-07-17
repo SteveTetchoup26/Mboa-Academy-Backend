@@ -23,6 +23,12 @@ export default class Lesson extends Model {
     @Column
     resume: string;
 
+    @Column({
+        type: DataType.INTEGER,
+        defaultValue: 0,
+    })
+    duration: number;
+
     @BelongsTo(() => Module)
     module: Module;
 

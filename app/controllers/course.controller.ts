@@ -15,11 +15,13 @@ import LanguageCourse from '../models/course/language.model';
 import Category from '../models/course/category.model';
 import Lesson from '../models/course/lesson.model';
 import VideoLesson from '../models/course/videoLesson.model';
+import Review from '../models/course/review.model';
 import CourseCategory from '../models/course/courseCategory.model';
 import { col, fn, Op, Sequelize } from 'sequelize';
 import Expertise from '../models/authentication/expertise.model';
 import Enrollment from '../models/enrollment/enrollment.model';
 import EnrollmentStatus from '../models/enrollment/enrollmentStatus.model';
+import Institution from '../models/institution/institution.model';
 import sequelize from 'sequelize';
 
 
@@ -52,6 +54,8 @@ class CourseController {
             objectives,
             modules,
             categories,
+            institution_id,
+            visibility,
         } =  JSON.parse(req.body.data);
 
         // console.log("BODY", JSON.parse(req.body.data))
@@ -75,6 +79,8 @@ class CourseController {
                 instructor_id: req.userId,
                 language_id: language_course.id,
                 status_id: status?.id,
+                visibility: institution_id ? (visibility || 'private') : 'public',
+                ...(institution_id ? { institution_id } : {}),
             }, { transaction });
             
             
@@ -122,6 +128,7 @@ class CourseController {
                             const lesson = await Lesson.create({
                                 title: lessonData.title,
                                 resume: lessonData.resume,
+                                duration: lessonData.duration || 0,
                                 module_id: module.id,
                             }, { transaction });
     
@@ -131,7 +138,7 @@ class CourseController {
     
                                 await VideoLesson.create({
                                     lesson_id: lesson.id,
-                                    file_name: `${videoFile.filename}`,
+                                    file_name: 'lessons_video/' + videoFile.filename,
                                     format: videoFile.mimetype
                                 }, { transaction });
                             }
@@ -168,7 +175,7 @@ class CourseController {
             if (req.files && "cover_image" in req.files) {
                 const coverImageFile = (req.files as any).cover_image[0];
                 await CoverCourse.create({
-                    file_name: coverImageFile.filename,
+                    file_name: 'cover_course/' + coverImageFile.filename,
                     format: coverImageFile.mimetype,
                     course_id: course.id,
                 }, { transaction });
@@ -199,10 +206,10 @@ class CourseController {
    */
     public static async all(req: Request, res: Response): Promise<any> {
 		try {
-            const status: CourseStatus | null = await CourseStatus.findOne({
-                where: { title: 'Archived' }
-            });
             
+            const publishedStatus: CourseStatus | null = await CourseStatus.findOne({
+                where: { title: 'Published' }
+            });
 			const courses: Array<Course> = await Course.findAll({
                 // attributes: {
                     
@@ -249,20 +256,24 @@ class CourseController {
                         attributes: {
                             exclude: ['course_id', 'createdAt', 'updatedAt']
                         }
-                    }, 
-                    Note, 
+                    },
+                    {
+                        model: Review,
+                        attributes: ['id', 'rating'],
+                    },
+                    Note,
                     {
                         model: CoverCourse,
                         attributes: {
                             exclude: ['course_id', 'createdAt', 'updatedAt']
                         }
-                    }, 
+                    },
                     {
                         model: User,
                         attributes: {
                             exclude: ['status_id', 'password', 'createdAt', 'updatedAt']
                         }
-                    }, 
+                    },
                     {
                         model: CourseStatus,
                         attributes: {
@@ -281,17 +292,49 @@ class CourseController {
                         attributes: {
                             exclude: ['course_id', 'createdAt', 'updatedAt']
                         }
+                    },
+                    {
+                        model: Institution,
+                        attributes: ['id', 'name', 'slug', 'logo_url', 'brand_color']
                     }
                 ],
-                where: { 
-                    status_id: { [Op.ne]: status?.id }
+                where: {
+                    status_id: publishedStatus?.id,
+                    visibility: 'public'
                 },
                 attributes: {
                     exclude: ['instructor_id', 'language_id','createdAt', 'updatedAt'],
                 },
             });
 
-			return res.status(200).json({ courses });
+			const coursesWithCounts = courses.map((course) => {
+				const c = course.toJSON();
+				c.enrolledStudents = c.enrollments?.length || 0;
+				// Total duration: sum of all lessons' durations across all modules
+				let totalDuration = 0;
+				if (c.modules) {
+					for (const mod of c.modules) {
+						if (mod.lessons) {
+							for (const lesson of mod.lessons) {
+								totalDuration += lesson.duration || 0;
+							}
+						}
+					}
+				}
+				c.duration = totalDuration;
+
+				// Average rating from reviews
+				if (c.reviews && c.reviews.length > 0) {
+					const totalRating = c.reviews.reduce((sum: number, r: any) => sum + r.rating, 0);
+					c.rating = Math.round((totalRating / c.reviews.length) * 10) / 10;
+				} else {
+					c.rating = null;
+				}
+				c.reviewsCount = c.reviews?.length || 0;
+				return c;
+			});
+
+			return res.status(200).json({ courses: coursesWithCounts });
 		} catch (err) {
 			console.log(err);
 
@@ -362,14 +405,24 @@ class CourseController {
                         attributes: {
                             exclude: ['course_id', 'createdAt', 'updatedAt']
                         }
-                    }, 
-                    Note, 
+                    },
+                    {
+                        model: Review,
+                        attributes: ['id', 'rating', 'comment'],
+                        include: [
+                            {
+                                model: User,
+                                attributes: ['id', 'name']
+                            }
+                        ]
+                    },
+                    Note,
                     {
                         model: CoverCourse,
                         attributes: {
                             exclude: ['course_id', 'createdAt', 'updatedAt']
                         }
-                    }, 
+                    },
                     {
                         model: User,
                         include: [
@@ -409,6 +462,10 @@ class CourseController {
                         attributes: {
                             exclude: ['course_id', 'createdAt', 'updatedAt']
                         }
+                    },
+                    {
+                        model: Institution,
+                        attributes: ['id', 'name', 'slug', 'logo_url', 'brand_color']
                     }
                 ]
             });
@@ -421,7 +478,31 @@ class CourseController {
                 where: { course_id: course.id }
             });
 
-			return res.status(200).json({ course, enrolledStudents });
+			// Calculate total course duration from lessons
+			let totalDuration = 0;
+			if (course.modules) {
+				for (const mod of course.modules) {
+					if (mod.lessons) {
+						for (const lesson of mod.lessons) {
+							totalDuration += lesson.duration || 0;
+						}
+					}
+				}
+			}
+
+			const cJson = course.toJSON();
+			cJson.duration = totalDuration;
+
+			// Calculate average rating from reviews
+			if (cJson.reviews && cJson.reviews.length > 0) {
+				const totalRating = cJson.reviews.reduce((sum: number, r: any) => sum + r.rating, 0);
+				cJson.rating = Math.round((totalRating / cJson.reviews.length) * 10) / 10;
+			} else {
+				cJson.rating = null;
+			}
+			cJson.reviewsCount = cJson.reviews?.length || 0;
+
+			return res.status(200).json({ course: cJson, enrolledStudents });
 		} catch (err) {
 			console.log(err);
 
@@ -632,8 +713,8 @@ class CourseController {
                     include: [
                         {
                             model: Enrollment,
-                            attributes: [],
-                            required: false 
+                            attributes: ['id', 'course_id'],
+                            required: false
                         },
                         {
                             model: Module,
@@ -782,6 +863,179 @@ class CourseController {
 			return res.status(500).json({ error: i18next.t('internal.error') });
 		}
 	}
+
+
+	/**
+	 * adminAll()
+	 *
+	 * Get ALL courses (no filtering by status/visibility).
+	 * For super admin dashboard.
+	 *
+	 * @param {Request} req: Request object
+	 * @param {Response} res: Response object
+	 *
+	 * @return Object
+	 */
+	public static async adminAll(req: Request, res: Response): Promise<any> {
+		try {
+			const courses: Array<Course> = await Course.findAll({
+				order: [['createdAt', 'DESC']],
+				include: [
+					{
+						model: Module,
+						attributes: ['id', 'title', 'resume'],
+						include: [
+							{
+								model: Lesson,
+								attributes: ['id', 'title', 'resume', 'duration'],
+								include: [
+									{
+										model: VideoLesson,
+										attributes: ['id', 'file_name', 'format']
+									}
+								]
+							}
+						]
+					},
+					{
+						model: Category,
+						through: { attributes: [] }
+					},
+					{
+						model: Objective,
+						attributes: ['id', 'title']
+					},
+					{
+						model: Feature,
+						attributes: ['id', 'title']
+					},
+					{
+						model: Review,
+						attributes: ['id', 'rating'],
+					},
+					{
+						model: Note,
+					},
+					{
+						model: CoverCourse,
+						attributes: {
+							exclude: ['course_id', 'createdAt', 'updatedAt']
+						}
+					},
+					{
+						model: User,
+						as: 'instructor',
+						attributes: {
+							exclude: ['status_id', 'password', 'createdAt', 'updatedAt']
+						}
+					},
+					{
+						model: CourseStatus,
+						attributes: ['id', 'title']
+					},
+					{
+						model: LanguageCourse,
+						attributes: {
+							exclude: ['createdAt', 'updatedAt']
+						}
+					},
+					{
+						model: Enrollment,
+						as: 'enrollments',
+						attributes: {
+							exclude: ['course_id', 'createdAt', 'updatedAt']
+						}
+					},
+					{
+						model: Institution,
+						attributes: ['id', 'name', 'slug', 'logo_url', 'brand_color']
+					}
+				],
+				attributes: {
+					exclude: ['instructor_id', 'language_id', 'createdAt', 'updatedAt']
+				}
+			});
+
+			const coursesWithCounts = courses.map((course: any) => {
+				const c = course.toJSON();
+				c.enrolledStudents = c.enrollments?.length || 0;
+				let totalDuration = 0;
+				if (c.modules) {
+					for (const mod of c.modules) {
+						if (mod.lessons) {
+							for (const lesson of mod.lessons) {
+								totalDuration += lesson.duration || 0;
+							}
+						}
+					}
+				}
+				c.duration = totalDuration;
+				if (c.reviews && c.reviews.length > 0) {
+					const totalRating = c.reviews.reduce((sum: number, r: any) => sum + r.rating, 0);
+					c.rating = Math.round((totalRating / c.reviews.length) * 10) / 10;
+				} else {
+					c.rating = null;
+				}
+				c.reviewsCount = c.reviews?.length || 0;
+				return c;
+			});
+
+			return res.status(200).json({ courses: coursesWithCounts });
+		} catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: i18next.t('internal.error') });
+		}
+	}
+
+	/**
+	 * validateCourse()
+	 *
+	 * Approve or reject a course (change its status)
+	 *
+	 * @param {Request} req: Request object
+	 * @param {Response} res: Response object
+	 *
+	 * @return Object
+	 */
+	public static async validateCourse(req: CustomRequest | any, res: Response): Promise<any> {
+		const { action } = req.body;
+
+		if (!action || !['approve', 'reject'].includes(action)) {
+			return res.status(400).json({ message: 'L\'action doit être \"approve\" ou \"reject\"' });
+		}
+
+		try {
+			const course = await Course.findByPk(req.params.id);
+			if (!course) {
+				return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Course' }) });
+			}
+
+			let newStatusTitle: string;
+			if (action === 'approve') {
+				newStatusTitle = 'Published';
+			} else {
+				newStatusTitle = 'Draft';
+			}
+
+			const status = await CourseStatus.findOne({ where: { title: newStatusTitle } });
+			if (!status) {
+				return res.status(404).json({ message: 'Statut introuvable' });
+			}
+
+			await course.update({ status_id: status.id });
+
+			return res.status(200).json({
+				message: action === 'approve'
+					? 'Cours publié avec succès'
+					: 'Cours rejeté, retourné en brouillon',
+				course
+			});
+		} catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: i18next.t('internal.error') });
+		}
+	}
+
 }
 
 export { CourseController }

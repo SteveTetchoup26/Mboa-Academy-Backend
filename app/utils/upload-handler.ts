@@ -3,7 +3,7 @@ import * as path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { Request } from 'express';
-import { UPLOAD_DEFAULT_PATH, UPLOAD_DOCUMENT_USER_PATH, UPLOAD_DOCUMENT_ADMIN_PATH, UPLOAD_PAYMENT_METHOD_PATH, UPLOAD_COVER_COURSE_PATH, UPLOAD_LESSON_VIDEO_PATH } from '../core/config';
+import { UPLOAD_DEFAULT_PATH, UPLOAD_DOCUMENT_USER_PATH, UPLOAD_DOCUMENT_ADMIN_PATH, UPLOAD_PAYMENT_METHOD_PATH, UPLOAD_COVER_COURSE_PATH, UPLOAD_LESSON_VIDEO_PATH, UPLOAD_INSTITUTION_LOGO_PATH } from '../core/config';
 
 
 
@@ -11,26 +11,39 @@ const storage: multer.StorageEngine = multer.diskStorage({
     destination: (req, file, cb) => {
         let folder;
 
-        const fileType = req.body.fileType; 
-    
-        switch (fileType) {
-            case "documentUser":
-              folder = UPLOAD_DOCUMENT_USER_PATH;
-              break;
-            case "documentAdmin":
-              folder = UPLOAD_DOCUMENT_ADMIN_PATH;
-              break;
-            case "paymentMethod":
-              folder = UPLOAD_PAYMENT_METHOD_PATH;
-              break;
-            case "courseCover":
-              folder = UPLOAD_COVER_COURSE_PATH;
-              break;
-            case "lessonVideo":
-              folder = UPLOAD_LESSON_VIDEO_PATH;
-              break;
-            default:
-                folder = UPLOAD_DEFAULT_PATH;
+        // Déterminer le dossier selon le nom du champ (fieldname) ou fileType
+        const fieldName = file.fieldname;
+
+        if (fieldName === 'cover_image') {
+            folder = UPLOAD_COVER_COURSE_PATH;
+        } else if (fieldName === 'videos') {
+            folder = UPLOAD_LESSON_VIDEO_PATH;
+        } else if (fieldName === 'logo' || fieldName === 'institutionLogo') {
+            folder = UPLOAD_INSTITUTION_LOGO_PATH;
+        } else {
+            const fileType = req.body.fileType;
+            switch (fileType) {
+                case "documentUser":
+                    folder = UPLOAD_DOCUMENT_USER_PATH;
+                    break;
+                case "documentAdmin":
+                    folder = UPLOAD_DOCUMENT_ADMIN_PATH;
+                    break;
+                case "paymentMethod":
+                    folder = UPLOAD_PAYMENT_METHOD_PATH;
+                    break;
+                case "courseCover":
+                    folder = UPLOAD_COVER_COURSE_PATH;
+                    break;
+                case "lessonVideo":
+                    folder = UPLOAD_LESSON_VIDEO_PATH;
+                    break;
+                case "institutionLogo":
+                    folder = UPLOAD_INSTITUTION_LOGO_PATH;
+                    break;
+                default:
+                    folder = UPLOAD_DEFAULT_PATH;
+            }
         }
     
         if (!fs.existsSync(folder)) {

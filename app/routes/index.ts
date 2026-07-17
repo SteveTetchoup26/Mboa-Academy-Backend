@@ -14,6 +14,9 @@ import { CourseRoute } from './course.route';
 import { EnrollmentRoute } from './enrollment.route';
 import { PaymentRoute } from './payment.route';
 import { AdminRoute } from './admin/auth.route';
+import { InstitutionRoute } from './institution.route';
+import { ReviewRoute } from './review.route';
+import { WebinarRoute } from './webinar.route';
 
 /**
  * Global router configuration of the application
@@ -29,8 +32,10 @@ class Routes {
 	static init(app: express.Application): void {
 		const router: express.Router = express.Router();
 
-        // Express middleware
-        app.use(helmet());
+		// Express middleware
+		app.use(helmet({
+			crossOriginResourcePolicy: { policy: 'cross-origin' },
+		}));
 		app.use(cors({
 			origin: [
 				process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -70,7 +75,14 @@ class Routes {
 		app.use('/', new EnrollmentRoute().router);
 
 		app.use('/', new AdminRoute().router);
-		
+
+		app.use('/', new InstitutionRoute().router);
+
+	//reviews
+	app.use('/', new ReviewRoute().router);
+
+	//webinars
+	app.use('/', new WebinarRoute().router);
 	}
 }
 

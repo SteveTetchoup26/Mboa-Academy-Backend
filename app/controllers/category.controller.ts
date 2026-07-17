@@ -35,7 +35,7 @@ class CategoryController {
                 return res.status(404).json({ message: i18next.t('model.not.found', { model: 'UserRole' }) });
             }
 
-		    const role: Role | null = await Role.findOne({ where: { title: 'Admin' }});
+		    const role: Role | null = await Role.findOne({ where: { title: 'Super Admin' }});
             
             if (!role) {
                 return res.status(404).json({ message: i18next.t('model.not.found', { model: 'Role' }) });

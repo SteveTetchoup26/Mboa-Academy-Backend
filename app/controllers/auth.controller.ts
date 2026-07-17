@@ -177,7 +177,7 @@ class AuthController {
               name: user.name,
               email: user.email,
               roles: roles,
-              isAdmin: roles.some(role => role === 'Admin')
+              isAdmin: roles.some(role => role === 'Super Admin')
           };
           
           return res.status(200).json({

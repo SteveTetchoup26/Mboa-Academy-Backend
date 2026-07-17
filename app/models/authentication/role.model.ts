@@ -21,7 +21,7 @@ export default class Role extends Model {
 
     @AfterSync
     static async insertStaticRoles() {
-        const roles = [RoleType.ADMIN, RoleType.STUDENT, RoleType.INSTRUCTOR];
+        const roles = [RoleType.SUPER_ADMIN, RoleType.ADMIN, RoleType.STUDENT, RoleType.INSTRUCTOR, RoleType.INSTITUTION];
         for (const title of roles) {
         await Role.findOrCreate({ where: { title } });
         }

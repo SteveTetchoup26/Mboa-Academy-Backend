@@ -1,5 +1,8 @@
 import { Sequelize } from 'sequelize-typescript';
 import { seedSuperAdmin } from './seed-admin';
+import { seedInstitutionTypes, seedInstitutionStatuses } from './seed-institutions';
+import { seedInstitutionAccount } from './seed-institution-account';
+import { seedLearner } from './seed-learner';
 
 export async function runSeeders(sequelize: Sequelize) {
     try {
@@ -10,6 +13,10 @@ export async function runSeeders(sequelize: Sequelize) {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         await seedSuperAdmin();
+        await seedInstitutionTypes();
+        await seedInstitutionStatuses();
+        await seedInstitutionAccount();
+        await seedLearner();
 
     } catch (error) {
         console.error('Erreur lors de l\'exécution des seeders:', error);
