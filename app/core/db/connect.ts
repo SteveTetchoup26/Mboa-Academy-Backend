@@ -35,7 +35,11 @@ const dbConnection = async () => {
 	try {
       await sequelize.authenticate();
     
-      if(config.ENV === 'dev') {
+      // force: true supprime et recrée toutes les tables : uniquement en dev
+      // ET sur une base locale, jamais sur une base distante (Supabase)
+      const isLocalDatabase = ['localhost', '127.0.0.1', '::1'].includes(config.DB_HOST);
+
+      if(config.ENV === 'dev' && isLocalDatabase) {
         await sequelize.sync({force: true});
       } else {
         await sequelize.sync();

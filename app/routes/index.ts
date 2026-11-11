@@ -17,6 +17,7 @@ import { AdminRoute } from './admin/auth.route';
 import { InstitutionRoute } from './institution.route';
 import { ReviewRoute } from './review.route';
 import { WebinarRoute } from './webinar.route';
+import { isRemoteStorageEnabled, getPublicUrl } from '../utils/storage';
 
 /**
  * Global router configuration of the application
@@ -51,6 +52,19 @@ class Routes {
 
 		// Static content
 		app.use(express.static(path.join(__dirname, '../../public')));
+
+		// Fichier absent du disque local (disque éphémère sur Render) :
+		// redirection vers le stockage distant, sinon 404
+		app.get('/uploads/*', (req: express.Request, res: express.Response) => {
+			const key = req.path.replace(/^\/uploads\//, '');
+
+			if (!isRemoteStorageEnabled || !key || decodeURIComponent(key).includes('..')) {
+				res.status(404).json({ message: 'file not found' });
+				return;
+			}
+
+			res.redirect(302, getPublicUrl(decodeURIComponent(key)));
+		});
 
 		app.use(authMiddleware);
 

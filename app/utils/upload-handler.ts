@@ -2,8 +2,9 @@
 import * as path from 'path';
 import fs from 'fs';
 import multer from 'multer';
-import { Request } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { UPLOAD_DEFAULT_PATH, UPLOAD_DOCUMENT_USER_PATH, UPLOAD_DOCUMENT_ADMIN_PATH, UPLOAD_PAYMENT_METHOD_PATH, UPLOAD_COVER_COURSE_PATH, UPLOAD_LESSON_VIDEO_PATH, UPLOAD_INSTITUTION_LOGO_PATH } from '../core/config';
+import { isRemoteStorageEnabled, uploadToRemoteStorage } from './storage';
 
 
 
@@ -54,12 +55,19 @@ const storage: multer.StorageEngine = multer.diskStorage({
       },
 
     filename(req: Request, file: any, fn: (error: Error | null, filename: string) => void): void {
-        fn(null, `${new Date().getTime().toString()}-${file.originalname}${path.extname(file.originalname)}`);
+        // Nom sans espaces ni caractères spéciaux : il sert d'URL et de clé de stockage
+        const extension = path.extname(file.originalname).toLowerCase();
+        const baseName = path.basename(file.originalname, path.extname(file.originalname))
+            .normalize('NFD')
+            .replace(/[^a-zA-Z0-9_-]+/g, '_')
+            .slice(0, 80) || 'file';
+
+        fn(null, `${new Date().getTime().toString()}-${baseName}${extension}`);
     }
 })
 
 
-export const uploadFiles =  multer({
+const multerUpload = multer({
     storage: storage,
     limits: { fileSize: 15 * 1024 * 1024 },
     fileFilter(req: any, file: any, callback: (error: Error | any , acceptFile: boolean) => void): void {
@@ -76,3 +84,34 @@ export const uploadFiles =  multer({
         }
     }
 });
+
+
+/**
+ * Après multer : envoie les fichiers reçus vers le stockage distant (si configuré).
+ * `file.filename` reste inchangé, les contrôleurs n'ont donc rien à adapter.
+ */
+const persistUploadedFiles: RequestHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!isRemoteStorageEnabled) return next();
+
+    const files: any[] = [];
+    if (req.file) files.push(req.file);
+    if (Array.isArray(req.files)) {
+        files.push(...req.files);
+    } else if (req.files) {
+        Object.values(req.files).forEach((group: any) => files.push(...group));
+    }
+
+    try {
+        await Promise.all(files.map(file => uploadToRemoteStorage(file)));
+        next();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'file upload failed' });
+    }
+};
+
+
+export const uploadFiles = {
+    single: (fieldName: string): RequestHandler[] => [multerUpload.single(fieldName), persistUploadedFiles],
+    fields: (fields: multer.Field[]): RequestHandler[] => [multerUpload.fields(fields), persistUploadedFiles],
+};
