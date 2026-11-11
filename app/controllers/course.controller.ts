@@ -44,6 +44,17 @@ class CourseController {
    * @return Object
    */
     public static async create(req: CustomRequest | any, res: Response,): Promise<any> {
+        // Un JSON invalide ne doit pas faire planter le serveur (rejet non géré)
+        let payload: any;
+        try {
+            payload = JSON.parse(req.body.data);
+        } catch {
+            payload = null;
+        }
+        if (!payload || typeof payload !== 'object') {
+            return res.status(400).json({ message: 'Invalid course data' });
+        }
+
         const {
             title,
             description,
@@ -56,9 +67,7 @@ class CourseController {
             categories,
             institution_id,
             visibility,
-        } =  JSON.parse(req.body.data);
-
-        // console.log("BODY", JSON.parse(req.body.data))
+        } = payload;
 
         const transaction = await Course.sequelize?.transaction();
 
