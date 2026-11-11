@@ -659,7 +659,16 @@ class InstitutionController {
         const institutionId: number = req.params.id;
 
         // Support both JSON body and FormData (JSON.stringified 'data' field)
-        const body = req.body.data ? JSON.parse(req.body.data) : req.body;
+        // Un JSON invalide ne doit pas faire planter le serveur (rejet non géré)
+        let body: any;
+        try {
+            body = req.body.data ? JSON.parse(req.body.data) : req.body;
+        } catch {
+            body = null;
+        }
+        if (!body || typeof body !== 'object') {
+            return res.status(400).json({ message: 'Invalid course data' });
+        }
         const {
             title, description, price, original_price,
             instructor_id, visibility,
