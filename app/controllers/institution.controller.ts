@@ -28,6 +28,12 @@ import VideoLesson from '../models/course/videoLesson.model';
 import Enrollment from '../models/enrollment/enrollment.model';
 import EnrollmentStatus from '../models/enrollment/enrollmentStatus.model';
 import Certificate from '../models/course/certificate.model';
+import Note from '../models/course/note.model';
+import Review from '../models/course/review.model';
+import EnrollmentEvolution from '../models/enrollment/enrollmentEvolution.model';
+import Forum from '../models/forum/forum.model';
+import Message from '../models/forum/message.model';
+import Payment from '../models/payment/payment.model';
 import { Sequelize } from 'sequelize-typescript';
 import { Op } from 'sequelize';
 import * as crypto from 'crypto';
@@ -989,7 +995,37 @@ class InstitutionController {
                 return res.status(404).json({ message: 'Cours introuvable' });
             }
 
-            await Course.destroy({ where: { id: courseId } });
+            // Un cours ayant délivré des certificats ne peut plus être supprimé
+            const certificates: number = await Certificate.count({ where: { course_id: courseId } });
+            if (certificates > 0) {
+                return res.status(409).json({ message: 'Ce cours a délivré des certificats et ne peut pas être supprimé' });
+            }
+
+            // Les tables liées n'ont pas de suppression en cascade :
+            // on supprime le contenu du cours avant le cours lui-même
+            await Course.sequelize!.transaction(async (transaction) => {
+                const moduleIds: number[] = (await Module.findAll({ where: { course_id: courseId }, attributes: ['id'], transaction })).map(m => m.id);
+                const lessonIds: number[] = (await Lesson.findAll({ where: { module_id: moduleIds }, attributes: ['id'], transaction })).map(l => l.id);
+                const enrollmentIds: number[] = (await Enrollment.findAll({ where: { course_id: courseId }, attributes: ['id'], transaction })).map(e => e.id);
+                const forumIds: number[] = (await Forum.findAll({ where: { courseId }, attributes: ['id'], transaction })).map(f => f.id);
+
+                await EnrollmentEvolution.destroy({ where: { [Op.or]: [{ enrollment_id: enrollmentIds }, { lesson_id: lessonIds }] }, transaction });
+                await Enrollment.destroy({ where: { id: enrollmentIds }, transaction });
+                await VideoLesson.destroy({ where: { lesson_id: lessonIds }, transaction });
+                await Lesson.destroy({ where: { id: lessonIds }, transaction });
+                await Module.destroy({ where: { id: moduleIds }, transaction });
+                await Message.destroy({ where: { forum_id: forumIds }, transaction });
+                await Forum.destroy({ where: { id: forumIds }, transaction });
+                await Objective.destroy({ where: { course_id: courseId }, transaction });
+                await Feature.destroy({ where: { course_id: courseId }, transaction });
+                await CourseCategory.destroy({ where: { course_id: courseId }, transaction });
+                await CoverCourse.destroy({ where: { course_id: courseId }, transaction });
+                await Note.destroy({ where: { course_id: courseId }, transaction });
+                await Review.destroy({ where: { course_id: courseId }, transaction });
+                // Les paiements sont conservés (historique comptable), détachés du cours
+                await Payment.update({ course_id: null }, { where: { course_id: courseId }, transaction });
+                await Course.destroy({ where: { id: courseId }, transaction });
+            });
 
             return res.status(200).json({ message: 'Cours supprimé avec succès' });
         } catch (err) {
